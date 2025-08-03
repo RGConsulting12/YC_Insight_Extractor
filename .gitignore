@@ -1,0 +1,16 @@
+# Ignore environment variables
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore system-specific files
+.DS_Store
+
+# Ignore notebook checkpoints (optional)
+.ipynb_checkpoints/
+
+# Ignore virtual environments (if any)
+venv/
+.env/
