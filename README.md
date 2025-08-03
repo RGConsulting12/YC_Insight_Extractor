@@ -1,0 +1,3 @@
+# YC Insight Extractor
+
+A modular pipeline to extract critical business insights...
