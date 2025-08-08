@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "aKq3Y8BsozRtH1QIRc__ICTaVR0",
+  "id": "cFIlta1GkiE",
+  "snippet": {
+    "publishedAt": "2025-06-19T20:22:24Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "Elon Musk: Digital Superintelligence, Multiplanetary Life, How to Be Useful",
+    "description": "A fireside with Elon Musk on June 16, 2025 at AI Startup School in San Francisco.\n\nBefore rockets and robots, Elon Musk was drilling holes through his office floor to borrow internet. In this candid talk, he walks through the early days of Zip2, the Falcon 1 launches that nearly ended SpaceX, and the “miracle” of Tesla surviving 2008. \n\nHe shares the thinking that guided him—building from first principles, doing useful things, and the belief that we’re in the middle of an intelligence big bang.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - Intro\n01:25 - His origin story\n02:00 - Dream to help build the internet\n04:40 - Zip2 and lessons learned\n08:00 - PayPal \n14:30 - Origin of SpaceX\n18:30 - Building rockets from first principles\n23:50 - Lessons in leadership\n27:10 - Building up xAI\n39:00 - Super intelligence and synthetic data\n39:30 - Multi-planetary future\n43:00 - Neuralink, AI safety and the singularity\n48:10 - Message for the Next Generation of Builders",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/cFIlta1GkiE/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/cFIlta1GkiE/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/cFIlta1GkiE/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/cFIlta1GkiE/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/cFIlta1GkiE/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "Elon Musk: Digital Superintelligence, Multiplanetary Life, How to Be Useful",
+      "description": "A fireside with Elon Musk on June 16, 2025 at AI Startup School in San Francisco.\n\nBefore rockets and robots, Elon Musk was drilling holes through his office floor to borrow internet. In this candid talk, he walks through the early days of Zip2, the Falcon 1 launches that nearly ended SpaceX, and the “miracle” of Tesla surviving 2008. \n\nHe shares the thinking that guided him—building from first principles, doing useful things, and the belief that we’re in the middle of an intelligence big bang.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - Intro\n01:25 - His origin story\n02:00 - Dream to help build the internet\n04:40 - Zip2 and lessons learned\n08:00 - PayPal \n14:30 - Origin of SpaceX\n18:30 - Building rockets from first principles\n23:50 - Lessons in leadership\n27:10 - Building up xAI\n39:00 - Super intelligence and synthetic data\n39:30 - Multi-planetary future\n43:00 - Neuralink, AI safety and the singularity\n48:10 - Message for the Next Generation of Builders"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT49M41S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "468443",
+    "likeCount": "12089",
+    "favoriteCount": "0",
+    "commentCount": "856"
+  }
+}

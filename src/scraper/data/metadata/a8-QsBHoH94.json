@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "I5o_OjriZ9Nfuxes7zHzzUonl-c",
+  "id": "a8-QsBHoH94",
+  "snippet": {
+    "publishedAt": "2025-07-22T14:02:08Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "Chelsea Finn: Building Robots That Can Do Anything",
+    "description": "Chelsea Finn on June 17th, 2025 at AI Startup School in San Francisco.\n\nFrom MIT through her PhD at Berkeley, where she pioneered meta‑learning methods, and Google Brain, Chelsea Finn has built her career around teaching machines how to learn. Now an Assistant Professor at Stanford and co‑founder of Physical Intelligence, she’s using that foundation to bring learning-driven robotics into messy, real-world environments rather than confined lab setups.\n\nIn this talk, Chelsea traces the evolution of her team’s work—from early experiments on robotic grasping and vision to today’s ambitious efforts at folding laundry, tidying kitchens, and generalizing across tasks—all without hand-crafted code. Instead, they used scalable foundation models and massive datasets, teaching robots physical common sense as they learn by doing. \n\nShe shares stories of the rocky setbacks, the surprises hidden in data, and the moment it all clicked: robots equipped with generalizable physical intelligence can indeed adapt and assist in the unpredictable world around us.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - General Purpose Robots\n00:11 - Challenges in Robotics Applications\n00:57 - Physical Intelligence: A New Approach\n01:47 - Learning from Language Models\n02:08 - Data Sources for Training Robots\n03:32 - Training with Real-World Data\n04:39 - Initial Successes and Challenges\n09:10 - Breakthrough in Robot Training\n11:03 - Improving Performance\n15:43 - Expanding Capabilities\n17:34 - Robots in Unseen Environments\n25:54 - Handling Open-Ended Prompts\n29:36 - Evaluating Robot Performance\n30:03 - Future Directions and Challenges\n31:27 - Audience Q&A",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/a8-QsBHoH94/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/a8-QsBHoH94/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/a8-QsBHoH94/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/a8-QsBHoH94/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/a8-QsBHoH94/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "Chelsea Finn: Building Robots That Can Do Anything",
+      "description": "Chelsea Finn on June 17th, 2025 at AI Startup School in San Francisco.\n\nFrom MIT through her PhD at Berkeley, where she pioneered meta‑learning methods, and Google Brain, Chelsea Finn has built her career around teaching machines how to learn. Now an Assistant Professor at Stanford and co‑founder of Physical Intelligence, she’s using that foundation to bring learning-driven robotics into messy, real-world environments rather than confined lab setups.\n\nIn this talk, Chelsea traces the evolution of her team’s work—from early experiments on robotic grasping and vision to today’s ambitious efforts at folding laundry, tidying kitchens, and generalizing across tasks—all without hand-crafted code. Instead, they used scalable foundation models and massive datasets, teaching robots physical common sense as they learn by doing. \n\nShe shares stories of the rocky setbacks, the surprises hidden in data, and the moment it all clicked: robots equipped with generalizable physical intelligence can indeed adapt and assist in the unpredictable world around us.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - General Purpose Robots\n00:11 - Challenges in Robotics Applications\n00:57 - Physical Intelligence: A New Approach\n01:47 - Learning from Language Models\n02:08 - Data Sources for Training Robots\n03:32 - Training with Real-World Data\n04:39 - Initial Successes and Challenges\n09:10 - Breakthrough in Robot Training\n11:03 - Improving Performance\n15:43 - Expanding Capabilities\n17:34 - Robots in Unseen Environments\n25:54 - Handling Open-Ended Prompts\n29:36 - Evaluating Robot Performance\n30:03 - Future Directions and Challenges\n31:27 - Audience Q&A"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT44M53S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "49334",
+    "likeCount": "1386",
+    "favoriteCount": "0",
+    "commentCount": "55"
+  }
+}

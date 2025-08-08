@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "RbQNOKZa660iPJLU5Lie4c0UVqI",
+  "id": "p8Jx4qvDoSo",
+  "snippet": {
+    "publishedAt": "2025-07-29T14:01:52Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "Scaling and the Road to Human-Level AI | Anthropic Co-founder Jared Kaplan",
+    "description": "Jared Kaplan on June 16th, 2025 at AI Startup School in San Francisco.\n\nJared Kaplan started out as a theoretical physicist chasing questions about the universe. Then he helped uncover one of AI’s most surprising truths: that intelligence scales in a predictable, almost physical way.\n\nThat insight became foundational to the modern era of large language models—and led him to co-found Anthropic.\n\nIn this talk, he walks through how that discovery reshaped the path to human-level AI, what it means for future models like Claude, and why even the dumbest questions can lead to the biggest breakthroughs. He reflects on memory, oversight, and what’s left to solve as models grow smarter—and longer-horizon tasks come within reach.\n\nApply to Y Combinator: https://ycombinator.com/apply\n\nChapters:\n00:17 - From Physics to AI\n01:41 - Initial Skepticism and Shift to AI\n02:12 - AI Training Phases\n02:32 - Pre-Training\n03:16 - Reinforcement Learning\n04:19 - Scaling Laws in Training\n08:19 - Unlocking AI Capabilities\n11:27 - Organizational Knowledge and Memory\n12:19 - Oversight and Nuanced Tasks\n13:38 - Preparing for the Future\n15:48 - Claude 4 and Beyond\n21:18 - Human-AI Collaboration\n29:50 - Scaling Laws and Compute Efficiency\n35:26 - Audience Q&A",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/p8Jx4qvDoSo/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/p8Jx4qvDoSo/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/p8Jx4qvDoSo/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/p8Jx4qvDoSo/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/p8Jx4qvDoSo/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "Scaling and the Road to Human-Level AI | Anthropic Co-founder Jared Kaplan",
+      "description": "Jared Kaplan on June 16th, 2025 at AI Startup School in San Francisco.\n\nJared Kaplan started out as a theoretical physicist chasing questions about the universe. Then he helped uncover one of AI’s most surprising truths: that intelligence scales in a predictable, almost physical way.\n\nThat insight became foundational to the modern era of large language models—and led him to co-found Anthropic.\n\nIn this talk, he walks through how that discovery reshaped the path to human-level AI, what it means for future models like Claude, and why even the dumbest questions can lead to the biggest breakthroughs. He reflects on memory, oversight, and what’s left to solve as models grow smarter—and longer-horizon tasks come within reach.\n\nApply to Y Combinator: https://ycombinator.com/apply\n\nChapters:\n00:17 - From Physics to AI\n01:41 - Initial Skepticism and Shift to AI\n02:12 - AI Training Phases\n02:32 - Pre-Training\n03:16 - Reinforcement Learning\n04:19 - Scaling Laws in Training\n08:19 - Unlocking AI Capabilities\n11:27 - Organizational Knowledge and Memory\n12:19 - Oversight and Nuanced Tasks\n13:38 - Preparing for the Future\n15:48 - Claude 4 and Beyond\n21:18 - Human-AI Collaboration\n29:50 - Scaling Laws and Compute Efficiency\n35:26 - Audience Q&A"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT40M48S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "39199",
+    "likeCount": "691",
+    "favoriteCount": "0",
+    "commentCount": "33"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "XeDTGxK9IINahc_UDdw9WkYAHM4",
+  "id": "5QcCeSsNRks",
+  "snippet": {
+    "publishedAt": "2025-07-03T14:00:10Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "François Chollet: How We Get To AGI",
+    "description": "François Chollet on June 16, 2025 at AI Startup School in San Francisco.\n\nFrançois Chollet is a leading voice in AI. He's the creator of the Keras library, author of Deep Learning with Python, and the founder of the ARC Prize, a global competition aimed at measuring true general intelligence.\n\nHe's spent years thinking deeply about what intelligence actually is, and why scaling up today’s AI models isn’t enough to reach it.\n\nIn this talk, he walks through the limits of pretraining and memorized skills, and lays out a path toward true general intelligence— AI that can adapt on the fly, reason in new situations, and invent novel solutions. He explains why abstraction and compositionality matter, how ARC became the benchmark for progress, and what his team at a new research lab called Ndea is building next.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - The Falling Cost of Compute\n00:57 - Deep-Learning’s Scaling Era & Benchmarks\n01:59 - The ARC Benchmark\n03:02 - The 2024 Shift to Test-Time Adaptation\n05:01 - What Is Intelligence?\n07:12 - Why Benchmarks Matter (and Mislead)\n08:57 - ARC 1 Exposes Scaling Limits\n10:58 - ARC 2: Compositional Reasoning Arrives\n12:55 - Humans vs. Models on ARC 2\n14:58 - Previewing ARC 3 & Interactive Agency\n17:00 - Kaleidoscopic Hypothesis and Abstractions\n22:00 - Type 1 vs. Type 2 Abstractions\n26:00 - Discrete Program Search & Inventive AI\n29:00 - Fusing Intuition with Symbolic Reasoning\n32:00 - Building AGI Through Meta-Learning Systems\n33:44 - NDEA: a new AI research lab",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/5QcCeSsNRks/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/5QcCeSsNRks/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/5QcCeSsNRks/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/5QcCeSsNRks/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/5QcCeSsNRks/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "François Chollet: How We Get To AGI",
+      "description": "François Chollet on June 16, 2025 at AI Startup School in San Francisco.\n\nFrançois Chollet is a leading voice in AI. He's the creator of the Keras library, author of Deep Learning with Python, and the founder of the ARC Prize, a global competition aimed at measuring true general intelligence.\n\nHe's spent years thinking deeply about what intelligence actually is, and why scaling up today’s AI models isn’t enough to reach it.\n\nIn this talk, he walks through the limits of pretraining and memorized skills, and lays out a path toward true general intelligence— AI that can adapt on the fly, reason in new situations, and invent novel solutions. He explains why abstraction and compositionality matter, how ARC became the benchmark for progress, and what his team at a new research lab called Ndea is building next.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 - The Falling Cost of Compute\n00:57 - Deep-Learning’s Scaling Era & Benchmarks\n01:59 - The ARC Benchmark\n03:02 - The 2024 Shift to Test-Time Adaptation\n05:01 - What Is Intelligence?\n07:12 - Why Benchmarks Matter (and Mislead)\n08:57 - ARC 1 Exposes Scaling Limits\n10:58 - ARC 2: Compositional Reasoning Arrives\n12:55 - Humans vs. Models on ARC 2\n14:58 - Previewing ARC 3 & Interactive Agency\n17:00 - Kaleidoscopic Hypothesis and Abstractions\n22:00 - Type 1 vs. Type 2 Abstractions\n26:00 - Discrete Program Search & Inventive AI\n29:00 - Fusing Intuition with Symbolic Reasoning\n32:00 - Building AGI Through Meta-Learning Systems\n33:44 - NDEA: a new AI research lab"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT34M48S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "116247",
+    "likeCount": "2727",
+    "favoriteCount": "0",
+    "commentCount": "191"
+  }
+}

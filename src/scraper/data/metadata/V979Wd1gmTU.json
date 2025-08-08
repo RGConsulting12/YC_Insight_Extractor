@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "-PW_fdiYN19A-OXSWHQnsOAGRpo",
+  "id": "V979Wd1gmTU",
+  "snippet": {
+    "publishedAt": "2025-06-21T16:01:09Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "Sam Altman: The Future of OpenAI, ChatGPT's Origins, and Building AI Hardware",
+    "description": "A fireside with Sam Altman on June 16, 2025 at AI Startup School in San Francisco.\n\nSam Altman grew up obsessed with technology, broke into the Stanford mainframe as a kid, and dropped out to start his first company before turning 20.\n\nIn this conversation, he traces the path from early startup struggles to building OpenAI—sharing what he’s learned about ambition, the weight of responsibility, and how to keep building when the whole world is watching. He opens up about the hardest moments of his career, the limits of personal productivity, and why, in the end, it's all still about finding people you like working with and doing something that matters.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 – We’re going for AGI\n01:25 – Founding OpenAI Against the Odds\n05:00 – GPT-4o & the Future of Reasoning Models\n07:00 – ChatGPT Memory & the ‘Her’ Vision\n10:00 – GPT-5 & the Vision of a Multimodal Supermodel\n11:00 – Robots at Scale\n15:00 – Don’t Build ChatGPT — Build What’s Missing\n17:00 – Elon’s Harsh Email & Building Conviction\n26:00 – One Person’s Leverage in the Next Decade\n32:00 – AI for Science: Sam’s Personal Bet",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/V979Wd1gmTU/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/V979Wd1gmTU/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/V979Wd1gmTU/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/V979Wd1gmTU/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/V979Wd1gmTU/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "Sam Altman: The Future of OpenAI, ChatGPT's Origins, and Building AI Hardware",
+      "description": "A fireside with Sam Altman on June 16, 2025 at AI Startup School in San Francisco.\n\nSam Altman grew up obsessed with technology, broke into the Stanford mainframe as a kid, and dropped out to start his first company before turning 20.\n\nIn this conversation, he traces the path from early startup struggles to building OpenAI—sharing what he’s learned about ambition, the weight of responsibility, and how to keep building when the whole world is watching. He opens up about the hardest moments of his career, the limits of personal productivity, and why, in the end, it's all still about finding people you like working with and doing something that matters.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:00 – We’re going for AGI\n01:25 – Founding OpenAI Against the Odds\n05:00 – GPT-4o & the Future of Reasoning Models\n07:00 – ChatGPT Memory & the ‘Her’ Vision\n10:00 – GPT-5 & the Vision of a Multimodal Supermodel\n11:00 – Robots at Scale\n15:00 – Don’t Build ChatGPT — Build What’s Missing\n17:00 – Elon’s Harsh Email & Building Conviction\n26:00 – One Person’s Leverage in the Next Decade\n32:00 – AI for Science: Sam’s Personal Bet"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT42M44S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "416369",
+    "likeCount": "7559",
+    "favoriteCount": "0",
+    "commentCount": "410"
+  }
+}

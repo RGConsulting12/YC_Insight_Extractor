@@ -1,16 +1,119 @@
-# Ignore environment variables
-.env
-
-# Ignore Python cache files
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Ignore system-specific files
-.DS_Store
-
-# Ignore notebook checkpoints (optional)
-.ipynb_checkpoints/
-
-# Ignore virtual environments (if any)
+# Virtual environments
 venv/
-.env/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Audio and video files (large files)
+*.mp3
+*.mp4
+*.wav
+*.flac
+*.aac
+*.ogg
+*.m4a
+*.avi
+*.mov
+*.mkv
+*.wmv
+
+# Data files (transcripts, insights, etc.)
+data/audio/
+data/audio_chunks/
+data/raw_transcripts/
+data/insights/
+src/transcript/data/audio/
+src/transcript/data/audio_chunks/
+src/transcript/data/raw_transcripts/
+src/transcript/data/insights/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

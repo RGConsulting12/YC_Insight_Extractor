@@ -1,0 +1,74 @@
+{
+  "kind": "youtube#video",
+  "etag": "ZjgyLioJp_RYPB-bIJ5BObhob_k",
+  "id": "2jOnoTEk-xA",
+  "snippet": {
+    "publishedAt": "2025-07-11T14:37:45Z",
+    "channelId": "UCcefcZRL2oaA_uBNeo5UOWg",
+    "title": "Aravind Srinivas: Perplexity's Race to Build Agentic Search",
+    "description": "Aravind Srinivas on June 16, 2025 at AI Startup School in San Francisco.\n\nAravind Srinivas started Perplexity with one goal: to rethink how we search, browse, and interact with information online. In this conversation, he shares the journey from hacking together a natural-language-to-SQL search tool to building a product used by millions around the world.\n\nHe talks about the big bet on the AI-powered browser, why agents—not just chatbots—are the next step, and how speed, accuracy, and focus help a startup compete against giants. Along the way, he reflects on co-founder dynamics, early technical challenges, and what it takes to keep building when the biggest players in the world are racing alongside you.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:48 - Perplexity's Current Status and Challenges\n01:16 - The Browser Bet\n03:18 - Competition and Market Dynamics\n04:43 - The Importance of Speed and Innovation\n05:51 - Founding Perplexity: The Early Days\n09:18 - Product Evolution and User Experience\n19:44 - Running the Company and Future Outlook\n20:15 - AI Tools in Software Engineering\n20:31 - Adoption and Implementation of AI Coding Tools\n21:11 - Challenges and Benefits of AI in Development\n22:35 - Brand Value and Competition\n23:56 - Network Effects and Integrations\n27:40 - Business Model and Revenue Streams\n29:54 - Advice for Founders\n31:33 - Audience Q&A",
+    "thumbnails": {
+      "default": {
+        "url": "https://i.ytimg.com/vi/2jOnoTEk-xA/default.jpg",
+        "width": 120,
+        "height": 90
+      },
+      "medium": {
+        "url": "https://i.ytimg.com/vi/2jOnoTEk-xA/mqdefault.jpg",
+        "width": 320,
+        "height": 180
+      },
+      "high": {
+        "url": "https://i.ytimg.com/vi/2jOnoTEk-xA/hqdefault.jpg",
+        "width": 480,
+        "height": 360
+      },
+      "standard": {
+        "url": "https://i.ytimg.com/vi/2jOnoTEk-xA/sddefault.jpg",
+        "width": 640,
+        "height": 480
+      },
+      "maxres": {
+        "url": "https://i.ytimg.com/vi/2jOnoTEk-xA/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "channelTitle": "Y Combinator",
+    "tags": [
+      "YC",
+      "Y Combinator"
+    ],
+    "categoryId": "28",
+    "liveBroadcastContent": "none",
+    "defaultLanguage": "en-US",
+    "localized": {
+      "title": "Aravind Srinivas: Perplexity's Race to Build Agentic Search",
+      "description": "Aravind Srinivas on June 16, 2025 at AI Startup School in San Francisco.\n\nAravind Srinivas started Perplexity with one goal: to rethink how we search, browse, and interact with information online. In this conversation, he shares the journey from hacking together a natural-language-to-SQL search tool to building a product used by millions around the world.\n\nHe talks about the big bet on the AI-powered browser, why agents—not just chatbots—are the next step, and how speed, accuracy, and focus help a startup compete against giants. Along the way, he reflects on co-founder dynamics, early technical challenges, and what it takes to keep building when the biggest players in the world are racing alongside you.\n\nApply to Y Combinator: https://ycombinator.com/apply\nWork at a startup: https://workatastartup.com\n\nChapters:\n00:48 - Perplexity's Current Status and Challenges\n01:16 - The Browser Bet\n03:18 - Competition and Market Dynamics\n04:43 - The Importance of Speed and Innovation\n05:51 - Founding Perplexity: The Early Days\n09:18 - Product Evolution and User Experience\n19:44 - Running the Company and Future Outlook\n20:15 - AI Tools in Software Engineering\n20:31 - Adoption and Implementation of AI Coding Tools\n21:11 - Challenges and Benefits of AI in Development\n22:35 - Brand Value and Competition\n23:56 - Network Effects and Integrations\n27:40 - Business Model and Revenue Streams\n29:54 - Advice for Founders\n31:33 - Audience Q&A"
+    },
+    "defaultAudioLanguage": "en-US"
+  },
+  "contentDetails": {
+    "duration": "PT43M13S",
+    "dimension": "2d",
+    "definition": "hd",
+    "caption": "false",
+    "licensedContent": false,
+    "contentRating": {},
+    "projection": "rectangular"
+  },
+  "status": {
+    "uploadStatus": "processed",
+    "privacyStatus": "public",
+    "license": "youtube",
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "madeForKids": false
+  },
+  "statistics": {
+    "viewCount": "102900",
+    "likeCount": "1925",
+    "favoriteCount": "0",
+    "commentCount": "105"
+  }
+}
