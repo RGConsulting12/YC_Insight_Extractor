@@ -3,6 +3,7 @@ import re
 import json
 import subprocess
 from pathlib import Path
+from datetime import datetime
 
 # Updated to use more flexible paths
 def get_project_paths():
@@ -79,8 +80,40 @@ def get_chapters(video_id):
     return None
 
 
+def create_chunk_metadata(video_id, chunk_path, chunk_index, start_time, end_time, chapter_info=None):
+    """Create metadata for an audio chunk"""
+    metadata = {
+        "video_id": video_id,
+        "chunk_index": chunk_index,
+        "chunk_filename": Path(chunk_path).name,
+        "start_time_seconds": start_time,
+        "end_time_seconds": end_time,
+        "duration_seconds": end_time - start_time,
+        "start_time_formatted": f"{int(start_time//60):02d}:{int(start_time%60):02d}",
+        "end_time_formatted": f"{int(end_time//60):02d}:{int(end_time%60):02d}",
+        "created_at": datetime.now().isoformat(),
+        "processing_pipeline": "yc-insight-extractor"
+    }
+    
+    if chapter_info:
+        metadata.update({
+            "chapter_title": chapter_info.get("title", f"Chapter {chunk_index}"),
+            "chapter_index": chunk_index,
+            "is_chapter_based": True
+        })
+    else:
+        metadata.update({
+            "is_chapter_based": False,
+            "chunk_type": "fixed_length"
+        })
+    
+    return metadata
+
 def split_by_chapters(audio_path, chapters, base_name, output_dir):
     chunk_files = []
+    chunk_metadata = []
+    
+    # Get total duration
     duration_cmd = subprocess.run([
         "ffprobe", "-v", "error",
         "-show_entries", "format=duration",
@@ -96,14 +129,28 @@ def split_by_chapters(audio_path, chapters, base_name, output_dir):
         slug = title.lower().replace(" ", "_").replace(":", "").replace("-", "").replace("—", "")
         output_path = os.path.join(output_dir, f"{base_name}_chapter_{i}_{slug}.mp3")
 
+        # Create chunk
         subprocess.run([
             "ffmpeg", "-i", audio_path,
             "-ss", str(start), "-to", str(end),
             "-c", "copy", output_path
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+        # Create metadata
+        metadata = create_chunk_metadata(
+            base_name, output_path, i, start, end, 
+            chapter_info={"title": title, "index": i}
+        )
+        
         chunk_files.append(output_path)
-    return chunk_files
+        chunk_metadata.append(metadata)
+    
+    # Save metadata
+    metadata_path = os.path.join(output_dir, f"{base_name}_chunks_metadata.json")
+    with open(metadata_path, 'w') as f:
+        json.dump(chunk_metadata, f, indent=2)
+    
+    return chunk_files, chunk_metadata
 
 
 def split_by_length(audio_path, base_name, output_dir, chunk_duration=1200, overlap=200):
@@ -116,6 +163,7 @@ def split_by_length(audio_path, base_name, output_dir, chunk_duration=1200, over
 
     duration = float(result.stdout.strip())
     chunk_files = []
+    chunk_metadata = []
     start = 0
     i = 0
 
@@ -129,25 +177,49 @@ def split_by_length(audio_path, base_name, output_dir, chunk_duration=1200, over
             "-c", "copy", output_path
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+        # Create metadata for fixed-length chunks
+        metadata = create_chunk_metadata(
+            base_name, output_path, i, start, end
+        )
+        
         chunk_files.append(output_path)
+        chunk_metadata.append(metadata)
         start += chunk_duration - overlap
         i += 1
-
-    return chunk_files
+    
+    # Save metadata
+    metadata_path = os.path.join(output_dir, f"{base_name}_chunks_metadata.json")
+    with open(metadata_path, 'w') as f:
+        json.dump(chunk_metadata, f, indent=2)
+    
+    return chunk_files, chunk_metadata
 
 
 def process_audio_file(audio_file):
     video_id = os.path.splitext(os.path.basename(audio_file))[0]
-
+    
+    # Create output directory with the correct path structure
+    output_dir = os.path.join("data", "audio_chunks", video_id)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Check if chunks already exist
+    metadata_file = os.path.join(output_dir, f"{video_id}_chunks_metadata.json")
+    if os.path.exists(metadata_file):
+        print(f"⏭️  Chunks already exist for {video_id}, skipping...")
+        # Return existing chunk files
+        chunk_files = [f for f in os.listdir(output_dir) if f.endswith('.mp3')]
+        chunk_files.sort()  # Sort to maintain order
+        return [os.path.join(output_dir, f) for f in chunk_files]
+    
     print(f"\n🔍 Processing {video_id}...")
     chapters = get_chapters(video_id)
 
     if chapters:
         print("📘 Chapters found. Splitting by chapters.")
-        return split_by_chapters(audio_file, chapters, video_id)
+        return split_by_chapters(audio_file, chapters, video_id, output_dir)
     else:
         print("⚠️ No chapters found. Splitting by fixed length.")
-        return split_by_length(audio_file, video_id)
+        return split_by_length(audio_file, video_id, output_dir)
 
 
 def split_audio_file(audio_path, output_dir=None):

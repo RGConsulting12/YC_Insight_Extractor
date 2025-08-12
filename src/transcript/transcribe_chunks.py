@@ -16,7 +16,7 @@ def transcribe_chunk(chunk_path):
     """Send audio file to OpenAI Whisper for transcription"""
     with open(chunk_path, "rb") as f:
         response = client.audio.transcriptions.create(
-            model="gpt-4o-transcribe",
+            model="gpt-4o-transcribe",  # ← OpenAI's Whisper API
             file=f
         )
     return response.text
@@ -48,34 +48,46 @@ def transcribe_audio_chunks(chunk_files):
 
 def process_all_chunks():
     """Loop through audio chunks and transcribe each"""
-    chunk_files = [f for f in os.listdir(CHUNKS_DIR) if f.endswith(".mp3")]
-
-    for chunk_file in chunk_files:
-        chunk_path = os.path.join(CHUNKS_DIR, chunk_file)
-
-        # Extract video ID to organize transcripts
-        video_id = chunk_file.split("_")[0]
+    # Get all video ID folders in the chunks directory
+    video_folders = [f for f in os.listdir(CHUNKS_DIR) 
+                    if os.path.isdir(os.path.join(CHUNKS_DIR, f))]
+    
+    print(f" Found {len(video_folders)} video folders to process")
+    
+    for video_id in video_folders:
+        video_chunks_dir = os.path.join(CHUNKS_DIR, video_id)
         video_transcript_dir = os.path.join(TRANSCRIPTS_DIR, video_id)
+        
+        # Create transcript directory for this video
         os.makedirs(video_transcript_dir, exist_ok=True)
-
-        # Create transcript path
-        transcript_file = chunk_file.replace(".mp3", ".txt")
-        transcript_path = os.path.join(video_transcript_dir, transcript_file)
-
-        if os.path.exists(transcript_path):
-            print(f"⏩ Already transcribed: {chunk_file}")
-            continue
-
-        print(f"📝 Transcribing: {chunk_file}")
-        try:
-            transcript = transcribe_chunk(chunk_path)
-            with open(transcript_path, "w", encoding="utf-8") as f:
-                f.write(transcript)
-            print(f"✅ Saved: {transcript_path}")
-        except Exception as e:
-            print(f"❌ Failed: {chunk_file} – {e}")
-            with open("transcription_errors.log", "a") as log:
-                log.write(f"{chunk_file}: {e}\n")
+        
+        # Get all MP3 files in this video's chunk folder
+        chunk_files = [f for f in os.listdir(video_chunks_dir) if f.endswith(".mp3")]
+        chunk_files.sort()  # Ensure proper order
+        
+        print(f"\n📹 Processing video: {video_id} ({len(chunk_files)} chunks)")
+        
+        for chunk_file in chunk_files:
+            chunk_path = os.path.join(video_chunks_dir, chunk_file)
+            
+            # Create transcript path
+            transcript_file = chunk_file.replace(".mp3", ".txt")
+            transcript_path = os.path.join(video_transcript_dir, transcript_file)
+            
+            if os.path.exists(transcript_path):
+                print(f"  ⏩ Already transcribed: {chunk_file}")
+                continue
+            
+            print(f"  📝 Transcribing: {chunk_file}")
+            try:
+                transcript = transcribe_chunk(chunk_path)
+                with open(transcript_path, "w", encoding="utf-8") as f:
+                    f.write(transcript)
+                print(f"  ✅ Saved: {transcript_path}")
+            except Exception as e:
+                print(f"  ❌ Failed: {chunk_file} – {e}")
+                with open("transcription_errors.log", "a") as log:
+                    log.write(f"{video_id}/{chunk_file}: {e}\n")
 
 if __name__ == "__main__":
     process_all_chunks()

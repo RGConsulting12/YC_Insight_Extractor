@@ -32,11 +32,15 @@ def extract_base_and_index(filename):
 
 def group_chunks():
     grouped = defaultdict(list)
-    for filename in os.listdir(CHUNK_DIR):
-        if filename.endswith(".txt"):
-            base, idx = extract_base_and_index(filename)
-            if base is not None and idx is not None:
-                grouped[base].append((idx, filename))
+    # Traverse video ID subdirectories
+    for video_id in os.listdir(CHUNK_DIR):
+        video_dir = os.path.join(CHUNK_DIR, video_id)
+        if os.path.isdir(video_dir):
+            for filename in os.listdir(video_dir):
+                if filename.endswith(".txt"):
+                    base, idx = extract_base_and_index(filename)
+                    if base is not None and idx is not None:
+                        grouped[base].append((idx, filename))
     return grouped
 
 def merge_chunks():
@@ -49,7 +53,8 @@ def merge_chunks():
 
         with open(merged_path, "w", encoding="utf-8") as outfile:
             for idx, filename in chunks:
-                chunk_path = os.path.join(CHUNK_DIR, filename)
+                # Fix: Include video_id subdirectory in path
+                chunk_path = os.path.join(CHUNK_DIR, video_id, filename)
                 with open(chunk_path, "r", encoding="utf-8") as infile:
                     text = infile.read().strip()
                     outfile.write(f"\n\n=== chunk_{idx} ===\n{text}")
