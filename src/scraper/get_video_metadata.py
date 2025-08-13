@@ -25,17 +25,41 @@ def fetch_video_metadata(video_id):
         "id": video_id,
         "key": YOUTUBE_API_KEY
     }
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        print(f"❌ Error fetching metadata for {video_id}: {response.text}")
+    
+    try:
+        response = requests.get(url, params=params)
+        
+        # Handle different response codes (following API docs)
+        if response.status_code == 200:
+            data = response.json()
+            items = data.get("items")
+            if items:
+                return items[0]
+            else:
+                print(f"⚠️ No metadata found for {video_id}")
+                return None
+        elif response.status_code == 403:
+            error_data = response.json()
+            if "quotaExceeded" in error_data.get("error", {}).get("errors", [{}])[0].get("reason", ""):
+                print("❌ YouTube API quota exceeded")
+            elif "keyInvalid" in error_data.get("error", {}).get("errors", [{}])[0].get("reason", ""):
+                print("❌ Invalid YouTube API key")
+            else:
+                print(f"❌ YouTube API access denied: {error_data}")
+            return None
+        elif response.status_code == 400:
+            print(f"❌ Bad request for {video_id}: {response.text}")
+            return None
+        else:
+            print(f"❌ YouTube API error {response.status_code}: {response.text}")
+            return None
+            
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Network error: {e}")
         return None
-
-    items = response.json().get("items")
-    if not items:
-        print(f"⚠️ No metadata found for {video_id}")
+    except json.JSONDecodeError as e:
+        print(f"❌ Invalid JSON response: {e}")
         return None
-
-    return items[0]
 
 # === Main ===
 def main():
