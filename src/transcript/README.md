@@ -113,7 +113,15 @@ The pipeline reads video IDs from `src/scraper/data/video_ids.json`. This file s
 [
   "p8Jx4qvDoSo",
   "a8-QsBHoH94",
-  "2Yguz5U-Nic"
+  "2Yguz5U-Nic",
+  "2jOnoTEk-xA",
+  "RNJCfif1dPY",
+  "5QcCeSsNRks",
+  "_PioN-CpOP0",
+  "AUUZuzVHKdo",
+  "V979Wd1gmTU",
+  "cFIlta1GkiE",
+  "LCEmiRjPEtQ"
 ]
 ```
 
@@ -204,3 +212,80 @@ response = client.audio.transcriptions.create(
 ## License
 
 This project is for educational and research purposes. Please respect YouTube's terms of service and OpenAI's usage policies.
+
+## 📍 **Storage Locations & Data Flow**
+
+### **1. Audio Chunks Storage** 📁
+**Location**: `src/transcript/data/audio_chunks/{video_id}/`
+
+**Example for video `p8Jx4qvDoSo`:**
+```
+src/transcript/data/audio_chunks/p8Jx4qvDoSo/
+├── p8Jx4qvDoSo_chunk_0.mp3  (0-20 minutes)
+├── p8Jx4qvDoSo_chunk_1.mp3  (17-37 minutes) 
+└── p8Jx4qvDoSo_chunk_2.mp3  (34-54 minutes)
+```
+
+**Chunk Configuration:**
+- **Duration**: 20 minutes (1200 seconds) per chunk
+- **Overlap**: 3 minutes (200 seconds) between chunks
+- **Format**: MP3 files
+- **Size**: ~10-50MB per chunk
+
+### **2. Chunk Assembly for LLM** 🔗
+**YES, chunks are joined together** before the LLM API call!
+
+**Process:**
+1. **Individual transcription**: Each audio chunk → OpenAI Whisper → Text
+2. **In-memory assembly**: All transcript chunks are combined into a single string
+3. **Single LLM call**: The complete assembled transcript is sent to GPT-4o for insight extraction
+
+**Assembly format:**
+```
+=== chunk_0 ===
+[transcript of first 20 minutes]
+
+=== chunk_1 ===
+[transcript of next 20 minutes]
+
+=== chunk_2 ===
+[transcript of final portion]
+```
+
+### **3. Insights Storage** 🧠
+**Location**: `data/insights/`
+
+**Files created:**
+```
+data/insights/
+├── p8Jx4qvDoSo_insights.json      # Individual video insights
+├── a8-QsBHoH94_insights.json      # Individual video insights
+├── 2Yguz5U-Nic_insights.json      # Individual video insights
+└── pipeline_summary.json          # Overall pipeline results
+```
+
+**Insights JSON structure:**
+```json
+{
+  "summary": "Main points of the presentation...",
+  "insights": ["Key insight 1", "Key insight 2"],
+  "golden_nuggets": ["Memorable quote 1", "Breakthrough idea 2"],
+  "video_id": "p8Jx4qvDoSo"
+}
+```
+
+## 🔄 **Complete Data Flow**
+
+```
+YouTube Video ID
+       ↓
+📥 Download Audio → src/transcript/data/audio/{video_id}.mp3
+       ↓
+✂️ Split into Chunks → src/transcript/data/audio_chunks/{video_id}/
+       ↓
+ Transcribe Each Chunk → [In-memory transcript strings]
+       ↓
+📝 Assemble Transcript → src/transcript/data/raw_transcripts/{video_id}.txt
+       ↓
+ Extract Insights → data/insights/{video_id}_insights.json
+```
