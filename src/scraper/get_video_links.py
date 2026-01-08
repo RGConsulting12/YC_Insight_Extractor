@@ -46,9 +46,27 @@ def get_videos_from_playlist(playlist_id):
 if __name__ == "__main__":
     video_ids = get_videos_from_playlist(PLAYLIST_ID)
 
-    # Save to JSON file
+    # Load existing video IDs to merge (don't overwrite manually added videos)
+    existing_video_ids = []
+    video_ids_path = Path("data/video_ids.json")
+    if video_ids_path.exists():
+        try:
+            with open(video_ids_path, "r") as f:
+                existing_video_ids = json.load(f)
+        except:
+            existing_video_ids = []
+    
+    # Merge playlist videos with existing videos (avoid duplicates)
+    all_video_ids = list(set(existing_video_ids + video_ids))
+    
+    # Save merged list to JSON file
     os.makedirs("data", exist_ok=True)
     with open("data/video_ids.json", "w") as f:
-        json.dump(video_ids, f, indent=2)
+        json.dump(all_video_ids, f, indent=2)
 
-    print(f"✅ Saved {len(video_ids)} video IDs to data/video_ids.json")
+    new_videos = len(all_video_ids) - len(existing_video_ids)
+    print(f"✅ Saved {len(all_video_ids)} total video IDs to data/video_ids.json")
+    if new_videos > 0:
+        print(f"   Added {new_videos} new videos from playlist")
+    else:
+        print(f"   No new videos (all playlist videos already in list)")

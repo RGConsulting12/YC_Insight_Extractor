@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Video Processing Pipeline</h1>
+        <p class="text-gray-600">Process new videos and extract insights</p>
+    </div>
+
+    <!-- Status Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Pipeline Status</h2>
+        
+        <div id="pipeline-status" class="space-y-4">
+            {% if status.running %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl">⚙️</span>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-yellow-800">
+                            Pipeline is running...
+                        </p>
+                        <p class="text-sm text-yellow-700 mt-1" id="status-message">
+                            {{ status.progress or 'Processing videos...' }}
+                        </p>
+                        {% if status.current_video %}
+                        <p class="text-sm text-yellow-600 mt-1">
+                            Current: {{ status.current_video }}
+                        </p>
+                        {% endif %}
+                        {% if status.total_videos > 0 %}
+                        <div class="mt-2">
+                            <div class="bg-yellow-200 rounded-full h-2.5">
+                                <div class="bg-yellow-600 h-2.5 rounded-full" 
+                                     style="width: {{ (status.processed / status.total_videos * 100) }}%">
+                                </div>
+                            </div>
+                            <p class="text-xs text-yellow-700 mt-1">
+                                {{ status.processed }} / {{ status.total_videos }} videos processed
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl">✅</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">
+                            Pipeline is idle
+                        </p>
+                        <p class="text-sm text-green-700 mt-1">
+                            {{ status.progress or 'Ready to process new videos' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- YouTube API Status -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">YouTube API Status</h2>
+        {% if youtube_api_status.status == 'success' %}
+        <div class="bg-green-50 border-l-4 border-green-400 p-4">
+            <div class="flex items-center">
+                <span class="text-2xl mr-3">✅</span>
+                <div>
+                    <p class="text-sm font-medium text-green-800">{{ youtube_api_status.message }}</p>
+                    {% if youtube_api_status.test_video_title %}
+                    <p class="text-xs text-green-700 mt-1">Test video: {{ youtube_api_status.test_video_title }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex items-center">
+                <span class="text-2xl mr-3">❌</span>
+                <div>
+                    <p class="text-sm font-medium text-red-800">{{ youtube_api_status.message }}</p>
+                    {% if not youtube_api_status.configured %}
+                    <p class="text-xs text-red-700 mt-1">Please configure GOOGLE_API_KEY in your .env file</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Add New Videos Section -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Add New Videos</h2>
+        
+        <!-- Tabs for Individual Videos vs Playlist -->
+        <div class="mb-4 border-b border-gray-200">
+            <nav class="flex space-x-8">
+                <button 
+                    onclick="showTab('individual')"
+                    id="tab-individual"
+                    class="py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600"
+                >
+                    Individual Videos
+                </button>
+                <button 
+                    onclick="showTab('playlist')"
+                    id="tab-playlist"
+                    class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700"
+                >
+                    From Playlist
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Individual Videos Tab -->
+        <div id="tab-content-individual" class="space-y-4">
+            <p class="text-sm text-gray-600">
+                Add YouTube video URLs or video IDs (one per line or comma-separated)
+            </p>
+            
+            <form 
+                id="add-videos-form"
+                class="space-y-4"
+            >
+                <div>
+                    <textarea 
+                        name="videos"
+                        id="video-input"
+                        rows="5"
+                        placeholder="Paste YouTube URLs or video IDs here...&#10;Examples:&#10;https://www.youtube.com/watch?v=VIDEO_ID&#10;https://youtu.be/VIDEO_ID&#10;VIDEO_ID"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    ></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        type="submit"
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                        ➕ Add Videos
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="document.getElementById('video-input').value = ''"
+                        class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Playlist Tab -->
+        <div id="tab-content-playlist" class="space-y-4 hidden">
+            <p class="text-sm text-gray-600">
+                Add all videos from a YouTube playlist by entering the playlist URL or ID
+            </p>
+            
+            <form 
+                id="add-playlist-form"
+                class="space-y-4"
+            >
+                <div>
+                    <input 
+                        type="text"
+                        name="playlist_id"
+                        id="playlist-input"
+                        placeholder="Playlist URL or ID...&#10;Examples:&#10;https://www.youtube.com/playlist?list=PLAYLIST_ID&#10;PLAYLIST_ID"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    />
+                </div>
+                <div class="flex gap-2">
+                    <button 
+                        type="submit"
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                        📋 Add Playlist Videos
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="document.getElementById('playlist-input').value = ''"
+                        class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="add-videos-result" class="mt-4"></div>
+    </div>
+
+    <!-- New Videos to Process Section -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">
+                New Videos to Process
+                <span class="text-lg font-normal text-gray-500">({{ new_videos|length }})</span>
+            </h2>
+            {% if new_videos|length > 0 and not status.running %}
+            <button 
+                id="start-pipeline-btn"
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                hx-post="/api/pipeline/start"
+                hx-target="#pipeline-status"
+                hx-swap="outerHTML"
+            >
+                🚀 Process {{ new_videos|length }} New Videos
+            </button>
+            {% endif %}
+        </div>
+
+        {% if new_videos|length > 0 %}
+        <div class="space-y-2">
+            {% for video_id in new_videos %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="flex items-center gap-3">
+                    <span class="text-lg">📹</span>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ video_id }}</p>
+                        <a 
+                            href="https://www.youtube.com/watch?v={{ video_id }}" 
+                            target="_blank"
+                            class="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                            View on YouTube →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500">
+            <p class="text-lg">🎉 All videos have been processed!</p>
+            <p class="text-sm mt-2">Add new video IDs to the scraper to process more videos.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Processed Videos Summary -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            Processed Videos
+            <span class="text-lg font-normal text-gray-500">({{ processed_count }})</span>
+        </h2>
+        <p class="text-gray-600">
+            You have {{ processed_count }} videos with extracted insights. 
+            <a href="/repository" class="text-blue-600 hover:text-blue-800">View in Repository →</a>
+        </p>
+    </div>
+
+    <!-- Auto-refresh for status updates -->
+    {% if status.running %}
+    <script>
+        // Auto-refresh status every 2 seconds when pipeline is running
+        function refreshStatus() {
+            fetch('/api/pipeline/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.running) {
+                        // Update status display
+                        document.getElementById('pipeline-status').innerHTML = `
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <span class="text-2xl">⚙️</span>
+                                    </div>
+                                    <div class="ml-3 flex-1">
+                                        <p class="text-sm font-medium text-yellow-800">
+                                            Pipeline is running...
+                                        </p>
+                                        <p class="text-sm text-yellow-700 mt-1">
+                                            ${data.progress || 'Processing videos...'}
+                                        </p>
+                                        ${data.current_video ? `<p class="text-sm text-yellow-600 mt-1">Current: ${data.current_video}</p>` : ''}
+                                        ${data.total_videos > 0 ? `
+                                            <div class="mt-2">
+                                                <div class="bg-yellow-200 rounded-full h-2.5">
+                                                    <div class="bg-yellow-600 h-2.5 rounded-full" 
+                                                         style="width: ${(data.processed / data.total_videos * 100)}%">
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-yellow-700 mt-1">
+                                                    ${data.processed} / ${data.total_videos} videos processed
+                                                </p>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(refreshStatus, 2000);
+                    } else {
+                        // Pipeline finished, reload page
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing status:', error);
+                    setTimeout(refreshStatus, 5000);
+                });
+        }
+        
+        // Start auto-refresh if pipeline is running
+        {% if status.running %}
+        setTimeout(refreshStatus, 2000);
+        {% endif %}
+    </script>
+    {% endif %}
+
+    <!-- Tab switching and form handling -->
+    <script>
+        function showTab(tab) {
+            // Hide all tab contents
+            document.getElementById('tab-content-individual').classList.add('hidden');
+            document.getElementById('tab-content-playlist').classList.add('hidden');
+            
+            // Remove active styling from all tabs
+            document.getElementById('tab-individual').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-individual').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('tab-playlist').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-playlist').classList.add('border-transparent', 'text-gray-500');
+            
+            // Show selected tab content
+            if (tab === 'individual') {
+                document.getElementById('tab-content-individual').classList.remove('hidden');
+                document.getElementById('tab-individual').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('tab-individual').classList.add('border-blue-500', 'text-blue-600');
+            } else {
+                document.getElementById('tab-content-playlist').classList.remove('hidden');
+                document.getElementById('tab-playlist').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('tab-playlist').classList.add('border-blue-500', 'text-blue-600');
+            }
+        }
+        
+        // Handle individual videos form submission
+        document.getElementById('add-videos-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const textarea = document.getElementById('video-input');
+            const videos = textarea.value
+                .split('\n')
+                .map(line => line.split(',').map(v => v.trim()))
+                .flat()
+                .filter(v => v.length > 0);
+            
+            if (videos.length === 0) {
+                alert('Please enter at least one video URL or ID');
+                return;
+            }
+            
+            fetch('/api/pipeline/add-videos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ videos: videos })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('add-videos-result');
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                            <p class="text-sm font-medium text-green-800">${data.message}</p>
+                            ${data.new_video_ids && data.new_video_ids.length > 0 ? `
+                                <p class="text-xs text-green-700 mt-2">Added video IDs:</p>
+                                <ul class="text-xs text-green-700 mt-1 list-disc list-inside">
+                                    ${data.new_video_ids.map(id => `<li>${id}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${data.invalid_inputs && data.invalid_inputs.length > 0 ? `
+                                <p class="text-xs text-red-700 mt-2">Invalid inputs:</p>
+                                <ul class="text-xs text-red-700 mt-1 list-disc list-inside">
+                                    ${data.invalid_inputs.map(input => `<li>${input}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            <p class="text-xs text-green-700 mt-2">Total videos in queue: ${data.total_videos}</p>
+                        </div>
+                    `;
+                    textarea.value = '';
+                    // Reload page after 2 seconds to show new videos
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                            <p class="text-sm font-medium text-red-800">Error: ${data.error || 'Failed to add videos'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('add-videos-result');
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p class="text-sm font-medium text-red-800">Error: ${error.message}</p>
+                    </div>
+                `;
+            });
+        });
+        
+        // Handle playlist form submission
+        document.getElementById('add-playlist-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const playlistInput = document.getElementById('playlist-input').value.trim();
+            
+            if (!playlistInput) {
+                alert('Please enter a playlist URL or ID');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('add-videos-result');
+            resultDiv.innerHTML = `
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                    <p class="text-sm font-medium text-blue-800">Fetching videos from playlist...</p>
+                </div>
+            `;
+            
+            fetch('/api/pipeline/add-playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playlist_id: playlistInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                            <p class="text-sm font-medium text-green-800">${data.message}</p>
+                            <p class="text-xs text-green-700 mt-2">
+                                Found ${data.playlist_videos_count} videos in playlist
+                                ${data.already_existed > 0 ? `(${data.already_existed} already existed)` : ''}
+                            </p>
+                            ${data.new_video_ids && data.new_video_ids.length > 0 ? `
+                                <p class="text-xs text-green-700 mt-2">New video IDs added:</p>
+                                <ul class="text-xs text-green-700 mt-1 list-disc list-inside max-h-32 overflow-y-auto">
+                                    ${data.new_video_ids.slice(0, 10).map(id => `<li>${id}</li>`).join('')}
+                                    ${data.new_video_ids.length > 10 ? `<li>... and ${data.new_video_ids.length - 10} more</li>` : ''}
+                                </ul>
+                            ` : ''}
+                            <p class="text-xs text-green-700 mt-2">Total videos in queue: ${data.total_videos}</p>
+                        </div>
+                    `;
+                    document.getElementById('playlist-input').value = '';
+                    // Reload page after 2 seconds to show new videos
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                            <p class="text-sm font-medium text-red-800">Error: ${data.error || 'Failed to add playlist videos'}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p class="text-sm font-medium text-red-800">Error: ${error.message}</p>
+                    </div>
+                `;
+            });
+        });
+    </script>
+</div>
+{% endblock %}

@@ -836,6 +836,105 @@ def check_youtube_api_route():
     return jsonify(status)
 
 
+def get_videos_from_playlist(playlist_id: str) -> List[str]:
+    """Get video IDs from a YouTube playlist"""
+    api_key = config.api.google_api_key or os.getenv("GOOGLE_API_KEY")
+    
+    if not api_key:
+        return []
+    
+    videos = []
+    next_page_token = None
+    youtube_api_url = "https://www.googleapis.com/youtube/v3"
+    max_results = 50
+    
+    while True:
+        params = {
+            "part": "snippet",
+            "playlistId": playlist_id,
+            "maxResults": max_results,
+            "key": api_key
+        }
+        
+        if next_page_token:
+            params["pageToken"] = next_page_token
+        
+        try:
+            response = requests.get(f"{youtube_api_url}/playlistItems", params=params, timeout=10)
+            
+            if response.status_code != 200:
+                print(f"Error fetching playlist: {response.status_code}")
+                break
+            
+            data = response.json()
+            
+            for item in data.get("items", []):
+                snippet = item.get("snippet", {})
+                resource_id = snippet.get("resourceId", {})
+                video_id = resource_id.get("videoId")
+                if video_id:
+                    videos.append(video_id)
+            
+            next_page_token = data.get("nextPageToken")
+            if not next_page_token:
+                break
+                
+        except Exception as e:
+            print(f"Error fetching playlist: {e}")
+            break
+    
+    return videos
+
+
+@app.route('/api/pipeline/add-playlist', methods=['POST'])
+def add_playlist_api():
+    """Add videos from a YouTube playlist to the processing queue"""
+    data = request.get_json()
+    
+    if not data or 'playlist_id' not in data:
+        return jsonify({'error': 'No playlist ID provided'}), 400
+    
+    playlist_input = data['playlist_id'].strip()
+    
+    # Extract playlist ID from URL if provided
+    playlist_id = None
+    if re.match(r'^[a-zA-Z0-9_-]+$', playlist_input):
+        # Already a playlist ID
+        playlist_id = playlist_input
+    else:
+        # Try to extract from URL
+        # Format: https://www.youtube.com/playlist?list=PLAYLIST_ID
+        match = re.search(r'[?&]list=([a-zA-Z0-9_-]+)', playlist_input)
+        if match:
+            playlist_id = match.group(1)
+    
+    if not playlist_id:
+        return jsonify({'error': 'Invalid playlist ID or URL'}), 400
+    
+    # Fetch videos from playlist
+    playlist_videos = get_videos_from_playlist(playlist_id)
+    
+    if not playlist_videos:
+        return jsonify({
+            'error': 'No videos found in playlist or API error',
+            'playlist_id': playlist_id
+        }), 400
+    
+    # Add videos to the queue (using existing add_video_ids function)
+    result = add_video_ids(playlist_videos)
+    
+    return jsonify({
+        'success': True,
+        'message': f"Added {result['added']} videos from playlist",
+        'playlist_id': playlist_id,
+        'playlist_videos_count': len(playlist_videos),
+        'added': result['added'],
+        'already_existed': len(playlist_videos) - result['added'],
+        'new_video_ids': result['new_video_ids'],
+        'total_videos': result['total_videos']
+    })
+
+
 @app.route('/partial/video-card/<video_id>')
 def partial_video_card(video_id: str):
     """HTMX partial: Video card"""

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Repository - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Insights Repository</h1>
+        <p class="text-gray-600">Browse all created insights and related files</p>
+    </div>
+
+    <!-- Repository Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Insight Files</p>
+            <p class="text-3xl font-bold text-gray-900">{{ insight_files|length }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Insights Size</p>
+            <p class="text-3xl font-bold text-gray-900">{{ "%.1f"|format(total_size / 1024) }} KB</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Transcripts Size</p>
+            <p class="text-3xl font-bold text-gray-900">{{ "%.1f"|format(total_transcripts_size / 1024) }} KB</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Audio Size</p>
+            <p class="text-3xl font-bold text-gray-900">{{ "%.1f"|format(total_audio_size / 1024 / 1024) }} MB</p>
+        </div>
+    </div>
+
+    <!-- Directory Path -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+            <span>📁</span>
+            <code class="bg-gray-100 px-2 py-1 rounded">{{ insights_dir }}</code>
+        </div>
+    </div>
+
+    <!-- Insights Files Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">Insight Files</h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Video ID / File
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Insights
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Files
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Size
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Modified
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for file in insight_files %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-2">📄</span>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <a 
+                                            href="/video/{{ file.video_id }}"
+                                            class="text-blue-600 hover:text-blue-800"
+                                            hx-get="/video/{{ file.video_id }}"
+                                            hx-target="body"
+                                            hx-push-url="true"
+                                        >
+                                            {{ file.video_id }}
+                                        </a>
+                                    </div>
+                                    <div class="text-xs text-gray-500 font-mono">
+                                        {{ file.filename }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium mr-1">
+                                    💡 {{ file.insights_count }}
+                                </span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                    ⭐ {{ file.nuggets_count }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col gap-1">
+                                {% if file.has_transcript %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+                                    📝 Transcript ({{ "%.1f"|format(file.transcript_size / 1024) }} KB)
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                                    📝 No transcript
+                                </span>
+                                {% endif %}
+                                
+                                {% if file.has_audio %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-medium">
+                                    🔊 Audio ({{ "%.1f"|format(file.audio_size / 1024 / 1024) }} MB)
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                                    🔊 No audio
+                                </span>
+                                {% endif %}
+                                
+                                {% if file.has_chunks %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 text-indigo-800 text-xs font-medium">
+                                    ✂️ {{ file.chunk_count }} chunks
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                                    ✂️ No chunks
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ "%.1f"|format(file.size / 1024) }} KB
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ file.modified }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex flex-col gap-2">
+                                <a 
+                                    href="/video/{{ file.video_id }}"
+                                    class="text-blue-600 hover:text-blue-900"
+                                    hx-get="/video/{{ file.video_id }}"
+                                    hx-target="body"
+                                    hx-push-url="true"
+                                >
+                                    View Video →
+                                </a>
+                                <a 
+                                    href="/insight-file/{{ file.video_id }}"
+                                    class="text-green-600 hover:text-green-900 text-xs"
+                                    target="_blank"
+                                >
+                                    📄 View JSON
+                                </a>
+                                <a 
+                                    href="/api/insight-file/{{ file.video_id }}"
+                                    class="text-purple-600 hover:text-purple-900 text-xs"
+                                    download="{{ file.filename }}"
+                                >
+                                    ⬇️ Download
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            No insight files found. Run the pipeline to create insights.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- File Structure Info -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Repository Structure</h2>
+        <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+            <div class="space-y-1">
+                <div>📁 insights/</div>
+                {% for file in insight_files[:5] %}
+                <div class="ml-4">  📄 {{ file.filename }}</div>
+                {% endfor %}
+                {% if insight_files|length > 5 %}
+                <div class="ml-4 text-gray-400">  ... and {{ insight_files|length - 5 }} more files</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

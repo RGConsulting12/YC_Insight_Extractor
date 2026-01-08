@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Insight File: {{ video_id }} - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Back Button -->
+    <div>
+        <a 
+            href="/repository" 
+            class="inline-flex items-center text-blue-600 hover:text-blue-800"
+            hx-get="/repository"
+            hx-target="body"
+            hx-push-url="true"
+        >
+            ← Back to Repository
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    Insight File: {{ video_id }}
+                </h1>
+                {% if metadata.title %}
+                <p class="text-gray-600">{{ metadata.title }}</p>
+                {% endif %}
+            </div>
+            <div class="flex gap-2">
+                <a 
+                    href="/api/insight-file/{{ video_id }}"
+                    download="{{ video_id }}_insights.json"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                    ⬇️ Download JSON
+                </a>
+                <a 
+                    href="/video/{{ video_id }}"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    hx-get="/video/{{ video_id }}"
+                    hx-target="body"
+                    hx-push-url="true"
+                >
+                    View Video Details →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Summary</h2>
+        <p class="text-gray-700 leading-relaxed">{{ insight_data.summary }}</p>
+    </div>
+
+    <!-- Insights -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+            Key Insights 
+            <span class="text-lg font-normal text-gray-500">({{ insight_data.insights|length }})</span>
+        </h2>
+        <ul class="space-y-3">
+            {% for insight in insight_data.insights %}
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                    {{ loop.index }}
+                </span>
+                <span class="text-gray-700 flex-1">{{ insight }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Golden Nuggets -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+            Golden Nuggets 
+            <span class="text-lg font-normal text-gray-500">({{ insight_data.golden_nuggets|length }})</span>
+        </h2>
+        <div class="space-y-4">
+            {% for nugget in insight_data.golden_nuggets %}
+            <div class="border-l-4 border-yellow-400 pl-4 py-2 bg-yellow-50 rounded-r">
+                <p class="text-gray-800 italic">"{{ nugget }}"</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Raw JSON -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold text-gray-900">Raw JSON</h2>
+            <button 
+                onclick="copyToClipboard()"
+                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm"
+            >
+                📋 Copy JSON
+            </button>
+        </div>
+        <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre id="json-content" class="text-green-400 text-sm font-mono whitespace-pre-wrap">{{ json_string }}</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const jsonContent = document.getElementById('json-content').textContent;
+    navigator.clipboard.writeText(jsonContent).then(() => {
+        alert('JSON copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+</script>
+{% endblock %}
