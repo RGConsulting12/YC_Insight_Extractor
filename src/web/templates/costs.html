@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Cost Tracking - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Cost Tracking</h1>
+        <p class="text-gray-600">Monitor API costs for processing videos</p>
+    </div>
+
+    {% if cost_data %}
+        <!-- Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-lg shadow p-6">
+                <p class="text-sm font-medium text-gray-500 mb-1">Total Cost</p>
+                <p class="text-3xl font-bold text-gray-900">
+                    ${{ "%.2f"|format(cost_data.summary.get('total_cost', 0)) }}
+                </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <p class="text-sm font-medium text-gray-500 mb-1">Whisper Cost</p>
+                <p class="text-3xl font-bold text-blue-600">
+                    ${{ "%.2f"|format(cost_data.summary.get('by_service', {}).get('whisper', 0)) }}
+                </p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <p class="text-sm font-medium text-gray-500 mb-1">GPT Cost</p>
+                <p class="text-3xl font-bold text-green-600">
+                    ${{ "%.2f"|format(cost_data.summary.get('by_service', {}).get('gpt', 0)) }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Cost Breakdown by Video -->
+        {% if cost_data.summary.get('by_video') %}
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Cost by Video</h2>
+            <div class="space-y-2">
+                {% for video_id, cost in cost_data.summary.by_video.items() %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <p class="font-medium text-gray-900">{{ video_id }}</p>
+                    <p class="font-semibold text-gray-900">${{ "%.2f"|format(cost) }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Entries -->
+        {% if cost_data.entries %}
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Cost Entries</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operation</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Video ID</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for entry in cost_data.entries[-20:]|reverse %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm text-gray-500">{{ entry.timestamp[:19] }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                    {{ entry.service }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-700">{{ entry.operation }}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-gray-900">${{ "%.4f"|format(entry.cost) }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-500">{{ entry.metadata.get('video_id', 'N/A') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-12 text-center">
+            <p class="text-gray-500 text-lg">No cost data available yet</p>
+            <p class="text-gray-400 text-sm mt-2">Cost tracking will appear here after processing videos with cost tracking enabled</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

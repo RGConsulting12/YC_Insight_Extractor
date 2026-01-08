@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # Load API key from .env file
 env_path = Path("/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/src/transcript/.env")
 load_dotenv(dotenv_path=env_path)
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Constants
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
@@ -26,7 +26,7 @@ def get_videos_from_playlist(playlist_id):
             "playlistId": playlist_id,
             "maxResults": MAX_RESULTS,
             "pageToken": next_page_token,
-            "key": YOUTUBE_API_KEY
+            "key": GOOGLE_API_KEY
         }
 
         response = requests.get(f"{YOUTUBE_API_URL}/playlistItems", params=params)

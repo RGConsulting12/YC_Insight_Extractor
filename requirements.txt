@@ -11,3 +11,4 @@ openai==1.51.0
 python-dotenv==1.0.0
 openai-whisper==20231117
 ffmpeg-python==0.2.0
+flask==3.0.0

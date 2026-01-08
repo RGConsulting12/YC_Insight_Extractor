@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Statistics</h1>
+        <p class="text-gray-600">Overview of processing statistics and metrics</p>
+    </div>
+
+    <!-- Overall Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Videos</p>
+            <p class="text-3xl font-bold text-gray-900">{{ stats.total_videos }}</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Insights</p>
+            <p class="text-3xl font-bold text-gray-900">{{ stats.total_insights }}</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Nuggets</p>
+            <p class="text-3xl font-bold text-gray-900">{{ stats.total_nuggets }}</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Transcript Length</p>
+            <p class="text-3xl font-bold text-gray-900">{{ "%.1f"|format(stats.total_transcript_length / 1024) }} KB</p>
+        </div>
+    </div>
+
+    <!-- Averages -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Averages</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Insights per Video</p>
+                <p class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(stats.avg_insights_per_video) }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">Nuggets per Video</p>
+                <p class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(stats.avg_nuggets_per_video) }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">Transcript per Video</p>
+                <p class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(stats.total_transcript_length / stats.total_videos / 1024) if stats.total_videos > 0 else 0 }} KB</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Videos by Insights -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Top Videos by Insights</h2>
+        <div class="space-y-2">
+            {% for video in videos|sort(attribute='insights_count', reverse=True)|list[:10] %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-900">{{ video.title[:60] }}{% if video.title|length > 60 %}...{% endif %}</p>
+                    <p class="text-sm text-gray-500">{{ video.video_id }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-blue-600">{{ video.insights_count }} insights</p>
+                    <p class="text-sm text-gray-500">{{ video.nuggets_count }} nuggets</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

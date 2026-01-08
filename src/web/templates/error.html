@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Error - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-12 text-center">
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Error</h1>
+    <p class="text-gray-600 text-lg mb-6">{{ message }}</p>
+    <a 
+        href="/" 
+        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        hx-get="/"
+        hx-target="body"
+        hx-push-url="true"
+    >
+        Back to Dashboard
+    </a>
+</div>
+{% endblock %}

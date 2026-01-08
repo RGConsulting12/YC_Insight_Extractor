@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Search - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Search Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Search Insights</h1>
+        
+        <!-- Search Form -->
+        <form 
+            action="/search"
+            method="get"
+            class="flex gap-2"
+        >
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search insights, quotes, topics..." 
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value="{{ query }}"
+            >
+            <button 
+                type="submit" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Search Results -->
+    <div id="search-results">
+        {% if query %}
+            {% if results %}
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-semibold text-gray-900">
+                            Found {{ results|length }} result{{ 's' if results|length != 1 else '' }} for "{{ query }}"
+                        </h2>
+                    </div>
+                    
+                    <div class="divide-y divide-gray-200">
+                        {% for result in results %}
+                        <div class="p-6 hover:bg-gray-50">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                <a 
+                                    href="/video/{{ result.video_id }}"
+                                    class="text-blue-600 hover:text-blue-800"
+                                    hx-get="/video/{{ result.video_id }}"
+                                    hx-target="body"
+                                    hx-push-url="true"
+                                >
+                                    {{ result.title }}
+                                </a>
+                            </h3>
+                            <p class="text-sm text-gray-600 mb-3">{{ result.summary }}</p>
+                            <div class="flex flex-wrap gap-2">
+                                {% for match in result.matches[:5] %}
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                    {{ match }}
+                                </span>
+                                {% endfor %}
+                                {% if result.matches|length > 5 %}
+                                <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                    +{{ result.matches|length - 5 }} more
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-white rounded-lg shadow p-12 text-center">
+                    <p class="text-gray-500 text-lg">No results found for "{{ query }}"</p>
+                    <p class="text-gray-400 text-sm mt-2">Try different keywords or browse all videos</p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="bg-white rounded-lg shadow p-12 text-center">
+                <p class="text-gray-500 text-lg">Enter a search query to find insights across all videos</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

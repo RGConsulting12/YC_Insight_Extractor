@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p class="text-gray-600">Overview of all processed YC videos and insights</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                    <span class="text-2xl">📹</span>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Total Videos</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_videos }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+                    <span class="text-2xl">💡</span>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Total Insights</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_insights }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                    <span class="text-2xl">⭐</span>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Golden Nuggets</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_nuggets }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                    <span class="text-2xl">📝</span>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Avg Insights/Video</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ "%.1f"|format(stats.avg_insights_per_video) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <form action="/search" method="get" class="flex gap-2">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search insights, quotes, topics..." 
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value="{{ request.args.get('q', '') }}"
+            >
+            <button 
+                type="submit" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Videos List -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-semibold text-gray-900">Processed Videos</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            {% for video in videos %}
+            <div 
+                class="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                hx-get="/video/{{ video.video_id }}"
+                hx-target="body"
+                hx-push-url="true"
+            >
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                            {{ video.title }}
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                            {{ video.summary[:200] }}{% if video.summary|length > 200 %}...{% endif %}
+                        </p>
+                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                            <span class="flex items-center gap-1">
+                                <span>💡</span>
+                                {{ video.insights_count }} insights
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span>⭐</span>
+                                {{ video.nuggets_count }} nuggets
+                            </span>
+                            {% if video.published_at %}
+                            <span class="flex items-center gap-1">
+                                <span>📅</span>
+                                {{ video.published_at[:10] }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <span class="text-blue-600">→</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="p-6 text-center text-gray-500">
+                No videos processed yet. Run the pipeline to get started!
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

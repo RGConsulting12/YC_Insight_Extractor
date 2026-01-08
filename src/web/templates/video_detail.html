@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ video_data.metadata.title }} - YC Insight Extractor{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Back Button -->
+    <div>
+        <a 
+            href="/" 
+            class="inline-flex items-center text-blue-600 hover:text-blue-800"
+            hx-get="/"
+            hx-target="body"
+            hx-push-url="true"
+        >
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Video Header -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">
+            {{ video_data.metadata.get('title', 'Unknown Title') }}
+        </h1>
+        
+        <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+            {% if video_data.metadata.get('published_at') %}
+            <span class="flex items-center gap-1">
+                <span>📅</span>
+                Published: {{ video_data.metadata.published_at[:10] }}
+            </span>
+            {% endif %}
+            {% if video_data.metadata.get('channel_title') %}
+            <span class="flex items-center gap-1">
+                <span>📺</span>
+                {{ video_data.metadata.channel_title }}
+            </span>
+            {% endif %}
+            {% if video_data.metadata.get('duration') %}
+            <span class="flex items-center gap-1">
+                <span>⏱️</span>
+                Duration: {{ video_data.metadata.duration }}
+            </span>
+            {% endif %}
+        </div>
+
+        {% if video_data.metadata.get('description') %}
+        <div class="prose max-w-none">
+            <p class="text-gray-700 whitespace-pre-line">{{ video_data.metadata.description[:500] }}{% if video_data.metadata.description|length > 500 %}...{% endif %}</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a 
+                href="https://www.youtube.com/watch?v={{ video_data.video_id }}" 
+                target="_blank"
+                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+                Watch on YouTube →
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Summary</h2>
+        <p class="text-gray-700 leading-relaxed">{{ video_data.insights.summary }}</p>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+            Key Insights 
+            <span class="text-lg font-normal text-gray-500">({{ video_data.insights.insights|length }})</span>
+        </h2>
+        <ul class="space-y-3">
+            {% for insight in video_data.insights.insights %}
+            <li class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                    {{ loop.index }}
+                </span>
+                <span class="text-gray-700 flex-1">{{ insight }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Golden Nuggets -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+            Golden Nuggets 
+            <span class="text-lg font-normal text-gray-500">({{ video_data.insights.golden_nuggets|length }})</span>
+        </h2>
+        <div class="space-y-4">
+            {% for nugget in video_data.insights.golden_nuggets %}
+            <div class="border-l-4 border-yellow-400 pl-4 py-2 bg-yellow-50 rounded-r">
+                <p class="text-gray-800 italic">"{{ nugget }}"</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Transcript (Collapsible) -->
+    {% if video_data.transcript %}
+    <div class="bg-white rounded-lg shadow p-6">
+        <div 
+            class="flex items-center justify-between cursor-pointer"
+            onclick="document.getElementById('transcript-content').classList.toggle('hidden')"
+        >
+            <h2 class="text-2xl font-semibold text-gray-900">Full Transcript</h2>
+            <span class="text-gray-500" id="transcript-toggle">▼</span>
+        </div>
+        <div id="transcript-content" class="hidden mt-4">
+            <div class="prose max-w-none bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                <pre class="whitespace-pre-wrap text-sm text-gray-700">{{ video_data.transcript }}</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelector('[onclick*="transcript"]')?.addEventListener('click', function() {
+    const content = document.getElementById('transcript-content');
+    const toggle = document.getElementById('transcript-toggle');
+    if (content.classList.contains('hidden')) {
+        toggle.textContent = '▲';
+    } else {
+        toggle.textContent = '▼';
+    }
+});
+</script>
+{% endblock %}

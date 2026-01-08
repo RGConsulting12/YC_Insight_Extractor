@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 # === Load API key from .env ===
 env_path = Path("/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/src/transcript/.env")
 load_dotenv(dotenv_path=env_path)
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-assert YOUTUBE_API_KEY, "❌ YOUTUBE_API_KEY not found in .env"
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+assert GOOGLE_API_KEY, "❌ GOOGLE_API_KEY not found in .env"
 
 # === Paths ===
 VIDEO_IDS_PATH = "data/video_ids.json"
@@ -23,7 +23,7 @@ def fetch_video_metadata(video_id):
     params = {
         "part": "snippet,contentDetails,statistics,status",
         "id": video_id,
-        "key": YOUTUBE_API_KEY
+        "key": GOOGLE_API_KEY
     }
     
     try:
