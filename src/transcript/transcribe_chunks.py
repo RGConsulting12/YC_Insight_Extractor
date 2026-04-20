@@ -14,32 +14,106 @@ os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
 
 def transcribe_chunk(chunk_path):
     """Send audio file to OpenAI Whisper for transcription"""
-    with open(chunk_path, "rb") as f:
-        response = client.audio.transcriptions.create(
-            model="gpt-4o-transcribe",  # ← OpenAI's Whisper API
-            file=f
-        )
-    return response.text
+    # #region agent log
+    try:
+        import json as json_module
+        import time as time_module
+        import os as os_module
+        chunk_stat = os_module.stat(chunk_path) if os_module.path.exists(chunk_path) else None
+        with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+            f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T1","location":"transcribe_chunks.py:15","message":"transcribe_chunk() called","data":{"chunk_path":str(chunk_path),"file_exists":os_module.path.exists(chunk_path),"file_size":chunk_stat.st_size if chunk_stat else None,"api_key_set":bool(os_module.getenv("OPENAI_API_KEY"))},"timestamp":int(time_module.time()*1000)}) + '\n')
+    except:
+        pass
+    # #endregion
+    try:
+        with open(chunk_path, "rb") as f:
+            # #region agent log
+            try:
+                import json as json_module
+                import time as time_module
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f_log:
+                    f_log.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T2","location":"transcribe_chunks.py:22","message":"About to call OpenAI API","data":{"chunk_path":str(chunk_path),"model":"gpt-4o-transcribe"},"timestamp":int(time_module.time()*1000)}) + '\n')
+            except:
+                pass
+            # #endregion
+            response = client.audio.transcriptions.create(
+                model="gpt-4o-transcribe",  # ← OpenAI's Whisper API
+                file=f
+            )
+            # #region agent log
+            try:
+                import json as json_module
+                import time as time_module
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f_log:
+                    f_log.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T2","location":"transcribe_chunks.py:30","message":"OpenAI API call succeeded","data":{"chunk_path":str(chunk_path),"transcript_length":len(response.text) if response else 0},"timestamp":int(time_module.time()*1000)}) + '\n')
+            except:
+                pass
+            # #endregion
+            return response.text
+    except Exception as e:
+        # #region agent log
+        try:
+            import json as json_module
+            import time as time_module
+            import traceback as tb_module
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f_log:
+                f_log.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T3","location":"transcribe_chunks.py:35","message":"transcribe_chunk() exception","data":{"chunk_path":str(chunk_path),"error_type":type(e).__name__,"error_message":str(e),"traceback":tb_module.format_exc()},"timestamp":int(time_module.time()*1000)}) + '\n')
+        except:
+            pass
+        # #endregion
+        raise
 
-def transcribe_audio_chunks(chunk_files):
+def transcribe_audio_chunks(chunk_files, progress_callback=None):
     """
     Transcribe a list of audio chunk files.
     
     Args:
         chunk_files (list): List of paths to audio chunk files
+        progress_callback (callable): Optional callback function(current_chunk, total_chunks)
     
     Returns:
         list: List of transcript texts in order
     """
     transcripts = []
+    total_chunks = len(chunk_files)
     
-    for chunk_path in chunk_files:
+    for i, chunk_path in enumerate(chunk_files, 1):
+        # #region agent log
+        try:
+            import json as json_module
+            import time as time_module
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T4","location":"transcribe_chunks.py:38","message":"Starting transcription of chunk","data":{"chunk_index":i,"total_chunks":total_chunks,"chunk_path":str(chunk_path)},"timestamp":int(time_module.time()*1000)}) + '\n')
+        except:
+            pass
+        # #endregion
         print(f"📝 Transcribing: {Path(chunk_path).name}")
+        if progress_callback:
+            progress_callback(i, total_chunks)
         try:
             transcript = transcribe_chunk(chunk_path)
             transcripts.append(transcript)
+            # #region agent log
+            try:
+                import json as json_module
+                import time as time_module
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                    f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T4","location":"transcribe_chunks.py:50","message":"Chunk transcription succeeded","data":{"chunk_index":i,"chunk_path":str(chunk_path),"transcript_length":len(transcript)},"timestamp":int(time_module.time()*1000)}) + '\n')
+            except:
+                pass
+            # #endregion
             print(f"✅ Transcribed: {Path(chunk_path).name}")
         except Exception as e:
+            # #region agent log
+            try:
+                import json as json_module
+                import time as time_module
+                import traceback as tb_module
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                    f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"T5","location":"transcribe_chunks.py:54","message":"Chunk transcription failed","data":{"chunk_index":i,"chunk_path":str(chunk_path),"error_type":type(e).__name__,"error_message":str(e),"traceback":tb_module.format_exc()},"timestamp":int(time_module.time()*1000)}) + '\n')
+            except:
+                pass
+            # #endregion
             print(f"❌ Failed to transcribe {chunk_path}: {e}")
             # Add empty transcript to maintain order
             transcripts.append("")
