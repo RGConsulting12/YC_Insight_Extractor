@@ -6,7 +6,12 @@
 <div class="space-y-6">
     <!-- Search Header -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">Search Insights</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">Search Insights</h1>
+            <div id="embeddings-status" class="text-sm text-gray-600">
+                <span class="loading">Loading embeddings status...</span>
+            </div>
+        </div>
         
         <!-- Search Form -->
         <form 
@@ -17,7 +22,7 @@
             <input 
                 type="text" 
                 name="q" 
-                placeholder="Search insights, quotes, topics..." 
+                placeholder="Search insights, quotes, topics... (semantic search enabled)" 
                 class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value="{{ query }}"
             >
@@ -28,17 +33,45 @@
                 Search
             </button>
         </form>
+        
+        <!-- Embeddings Status -->
+        <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-700">🧠 Semantic Search</p>
+                    <p class="text-xs text-gray-500 mt-1">AI-powered semantic search enabled when embeddings are available. Generate embeddings in the <a href="/repository" class="text-blue-600 hover:text-blue-800 underline">Repository</a> section.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Search Results -->
     <div id="search-results">
         {% if query %}
+            {% if answer %}
+                <!-- RAG Answer -->
+                <div class="bg-white rounded-lg shadow mb-6">
+                    <div class="p-6 border-b border-blue-200 bg-blue-50">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                            AI Answer
+                        </h2>
+                        <p class="text-sm text-gray-600">Generated from relevant transcript excerpts</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="prose max-w-none">
+                            <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">{{ answer }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
             {% if results %}
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6 border-b">
                         <h2 class="text-xl font-semibold text-gray-900">
-                            Found {{ results|length }} result{{ 's' if results|length != 1 else '' }} for "{{ query }}"
+                            Source Videos ({{ results|length }})
                         </h2>
+                        <p class="text-sm text-gray-600 mt-1">Transcript excerpts used to generate the answer above</p>
                     </div>
                     
                     <div class="divide-y divide-gray-200">
@@ -56,7 +89,15 @@
                                 </a>
                             </h3>
                             <p class="text-sm text-gray-600 mb-3">{{ result.summary }}</p>
-                            <div class="flex flex-wrap gap-2">
+                            {% if result.get('matched_text') %}
+                            <div class="mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                                <p class="text-sm text-gray-700 italic">"{{ result.matched_text }}"</p>
+                                {% if result.get('similarity') %}
+                                <p class="text-xs text-gray-500 mt-1">Relevance: {{ "%.1f"|format(result.similarity * 100) }}%</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="flex flex-wrap gap-2 mt-3">
                                 {% for match in result.matches[:5] %}
                                 <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                     {{ match }}
@@ -65,6 +106,11 @@
                                 {% if result.matches|length > 5 %}
                                 <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
                                     +{{ result.matches|length - 5 }} more
+                                </span>
+                                {% endif %}
+                                {% if result.get('search_type') == 'semantic' %}
+                                <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                    🧠 Semantic Match
                                 </span>
                                 {% endif %}
                             </div>
@@ -85,4 +131,29 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    // Load embeddings status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/embeddings/status')
+            .then(response => response.json())
+            .then(data => {
+                const statusEl = document.getElementById('embeddings-status');
+                if (data.status === 'success') {
+                    statusEl.innerHTML = `
+                        <span class="text-green-600">✓ ${data.total_embeddings} videos embedded</span>
+                    `;
+                } else {
+                    statusEl.innerHTML = `
+                        <span class="text-yellow-600">⚠ No embeddings found</span>
+                    `;
+                }
+            })
+            .catch(err => {
+                document.getElementById('embeddings-status').innerHTML = `
+                    <span class="text-gray-500">Status unavailable</span>
+                `;
+            });
+    });
+</script>
 {% endblock %}

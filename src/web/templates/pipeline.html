@@ -36,8 +36,10 @@
                         {% if status.total_videos > 0 %}
                         <div class="mt-2">
                             <div class="bg-yellow-200 rounded-full h-2.5">
-                                <div class="bg-yellow-600 h-2.5 rounded-full" 
-                                     style="width: {{ (status.processed / status.total_videos * 100) }}%">
+                                {% set progress_percent = (status.processed / status.total_videos * 100) if status.total_videos > 0 else 0 %}
+                                <div class="bg-yellow-600 h-2.5 rounded-full progress-bar" 
+                                     data-progress="{{ progress_percent }}"
+                                     style="width: 0%">
                                 </div>
                             </div>
                             <p class="text-xs text-yellow-700 mt-1">
@@ -199,6 +201,28 @@
         <div id="add-videos-result" class="mt-4"></div>
     </div>
 
+    <!-- Detailed Progress Section (shown when pipeline is running) -->
+    {% if status.running %}
+    <div class="bg-white rounded-lg shadow p-6" id="detailed-progress-section">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Processing Progress</h2>
+            <div class="text-sm text-gray-600">
+                <span class="font-medium">Processing Mode:</span> 
+                <span class="text-blue-600">Sequential (One at a time)</span>
+            </div>
+        </div>
+        <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-sm text-blue-800">
+                <strong>Note:</strong> Videos are processed sequentially (one after another) to ensure stability and proper resource management. 
+                Each video goes through: Download → Chunk → Transcribe → Assemble → Extract Insights
+            </p>
+        </div>
+        <div id="detailed-progress-content" class="space-y-4">
+            <!-- Progress will be loaded here via JavaScript -->
+        </div>
+    </div>
+    {% endif %}
+
     <!-- New Videos to Process Section -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-4">
@@ -262,13 +286,89 @@
     <!-- Auto-refresh for status updates -->
     {% if status.running %}
     <script>
-        // Auto-refresh status every 2 seconds when pipeline is running
-        function refreshStatus() {
+        // Pipeline running status from server
+        const PIPELINE_RUNNING = true;
+        const STAGE_ICONS = {
+            'queued': '⏳',
+            'downloading': '📥',
+            'chunking': '✂️',
+            'transcribing': '🎤',
+            'assembling': '📝',
+            'extracting': '🧠',
+            'completed': '✅',
+            'failed': '❌'
+        };
+        
+        const STAGE_COLORS = {
+            'queued': { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-300', bgLight: 'bg-gray-50' },
+            'downloading': { bg: 'bg-blue-600', text: 'text-blue-600', border: 'border-blue-300', bgLight: 'bg-blue-50' },
+            'chunking': { bg: 'bg-purple-600', text: 'text-purple-600', border: 'border-purple-300', bgLight: 'bg-purple-50' },
+            'transcribing': { bg: 'bg-yellow-600', text: 'text-yellow-600', border: 'border-yellow-300', bgLight: 'bg-yellow-50' },
+            'assembling': { bg: 'bg-indigo-600', text: 'text-indigo-600', border: 'border-indigo-300', bgLight: 'bg-indigo-50' },
+            'extracting': { bg: 'bg-pink-600', text: 'text-pink-600', border: 'border-pink-300', bgLight: 'bg-pink-50' },
+            'completed': { bg: 'bg-green-600', text: 'text-green-600', border: 'border-green-300', bgLight: 'bg-green-50' },
+            'failed': { bg: 'bg-red-600', text: 'text-red-600', border: 'border-red-300', bgLight: 'bg-red-50' }
+        };
+        
+        function getStageColor(stage) {
+            return STAGE_COLORS[stage] || STAGE_COLORS['queued'];
+        }
+        
+        function renderVideoProgress(videoId, videoData) {
+            const colors = getStageColor(videoData.stage);
+            const icon = STAGE_ICONS[videoData.stage] || '⏳';
+            const progress = videoData.progress || 0;
+            
+            // Determine container classes based on stage
+            let containerClasses = 'border rounded-lg p-4 ';
+            if (videoData.stage === 'failed') {
+                containerClasses += 'border-red-300 bg-red-50';
+            } else if (videoData.stage === 'completed') {
+                containerClasses += 'border-green-300 bg-green-50';
+            } else {
+                containerClasses += 'border-gray-200 bg-white';
+            }
+            
+            return `
+                <div class="${containerClasses}">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${icon}</span>
+                            <div>
+                                <p class="font-medium text-gray-900">${videoId}</p>
+                                <p class="text-xs text-gray-600">${videoData.stage_name || 'Processing...'}</p>
+                            </div>
+                        </div>
+                        <span class="text-sm font-semibold ${colors.text}">${progress}%</span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="bg-gray-200 rounded-full h-2.5">
+                            <div class="${colors.bg} h-2.5 rounded-full transition-all duration-300" 
+                                 style="width: ${progress}%">
+                            </div>
+                        </div>
+                    </div>
+                    ${videoData.message ? `
+                        <p class="text-xs text-gray-600 mt-2">${videoData.message}</p>
+                    ` : ''}
+                    ${videoData.errors && videoData.errors.length > 0 ? `
+                        <div class="mt-2 p-2 bg-red-100 rounded text-xs text-red-800">
+                            <p class="font-semibold">Errors:</p>
+                            <ul class="list-disc list-inside mt-1">
+                                ${videoData.errors.map(e => `<li>${e}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        function updateDetailedProgress() {
             fetch('/api/pipeline/status')
                 .then(response => response.json())
                 .then(data => {
+                    // Update main status
                     if (data.running) {
-                        // Update status display
                         document.getElementById('pipeline-status').innerHTML = `
                             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                                 <div class="flex items-center">
@@ -282,7 +382,6 @@
                                         <p class="text-sm text-yellow-700 mt-1">
                                             ${data.progress || 'Processing videos...'}
                                         </p>
-                                        ${data.current_video ? `<p class="text-sm text-yellow-600 mt-1">Current: ${data.current_video}</p>` : ''}
                                         ${data.total_videos > 0 ? `
                                             <div class="mt-2">
                                                 <div class="bg-yellow-200 rounded-full h-2.5">
@@ -299,7 +398,65 @@
                                 </div>
                             </div>
                         `;
-                        setTimeout(refreshStatus, 2000);
+                        
+                        // Update detailed progress
+                        if (data.detailed_progress && data.detailed_progress.videos) {
+                            const videos = data.detailed_progress.videos;
+                            const progressContent = document.getElementById('detailed-progress-content');
+                            if (progressContent) {
+                                const videoIds = Object.keys(videos).sort();
+                                
+                                // Separate videos by status
+                                const queued = videoIds.filter(id => videos[id].stage === 'queued');
+                                const processing = videoIds.filter(id => 
+                                    videos[id].stage !== 'queued' && 
+                                    videos[id].stage !== 'completed' && 
+                                    videos[id].stage !== 'failed'
+                                );
+                                const completed = videoIds.filter(id => videos[id].stage === 'completed');
+                                const failed = videoIds.filter(id => videos[id].stage === 'failed');
+                                
+                                let html = '';
+                                
+                                // Show currently processing video
+                                if (processing.length > 0) {
+                                    html += '<div class="mb-4"><h3 class="text-sm font-semibold text-gray-700 mb-2">Currently Processing</h3>';
+                                    html += processing.map(videoId => renderVideoProgress(videoId, videos[videoId])).join('');
+                                    html += '</div>';
+                                }
+                                
+                                // Show completed videos
+                                if (completed.length > 0) {
+                                    html += '<div class="mb-4"><h3 class="text-sm font-semibold text-green-700 mb-2">Completed (' + completed.length + ')</h3>';
+                                    html += completed.map(videoId => renderVideoProgress(videoId, videos[videoId])).join('');
+                                    html += '</div>';
+                                }
+                                
+                                // Show failed videos
+                                if (failed.length > 0) {
+                                    html += '<div class="mb-4"><h3 class="text-sm font-semibold text-red-700 mb-2">Failed (' + failed.length + ')</h3>';
+                                    html += failed.map(videoId => renderVideoProgress(videoId, videos[videoId])).join('');
+                                    html += '</div>';
+                                }
+                                
+                                // Show queued videos
+                                if (queued.length > 0) {
+                                    html += '<div class="mb-4"><h3 class="text-sm font-semibold text-gray-700 mb-2">Queued (' + queued.length + ')</h3>';
+                                    html += '<div class="grid grid-cols-2 md:grid-cols-4 gap-2">';
+                                    html += queued.slice(0, 12).map(videoId => 
+                                        '<div class="p-2 bg-gray-50 rounded text-xs text-gray-600">' + videoId + '</div>'
+                                    ).join('');
+                                    if (queued.length > 12) {
+                                        html += '<div class="p-2 bg-gray-50 rounded text-xs text-gray-500">+ ' + (queued.length - 12) + ' more</div>';
+                                    }
+                                    html += '</div></div>';
+                                }
+                                
+                                progressContent.innerHTML = html || '<p class="text-gray-500 text-center py-4">No progress data available</p>';
+                            }
+                        }
+                        
+                        setTimeout(updateDetailedProgress, 2000);
                     } else {
                         // Pipeline finished, reload page
                         location.reload();
@@ -307,16 +464,27 @@
                 })
                 .catch(error => {
                     console.error('Error refreshing status:', error);
-                    setTimeout(refreshStatus, 5000);
+                    setTimeout(updateDetailedProgress, 5000);
                 });
         }
         
         // Start auto-refresh if pipeline is running
-        {% if status.running %}
-        setTimeout(refreshStatus, 2000);
-        {% endif %}
+        setTimeout(updateDetailedProgress, 2000);
     </script>
     {% endif %}
+    
+    <!-- Initialize progress bars on page load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                const progress = bar.getAttribute('data-progress');
+                if (progress) {
+                    bar.style.width = progress + '%';
+                }
+            });
+        });
+    </script>
 
     <!-- Tab switching and form handling -->
     <script>

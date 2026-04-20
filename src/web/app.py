@@ -23,7 +23,8 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
 from src.config import get_config
-from src.utils import CostTracker
+from src.utils import CostTracker, ProgressTracker
+from src.utils.semantic_search import SemanticSearch
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -136,8 +137,69 @@ class DataLoader:
             'transcript': transcript
         }
     
-    def search_insights(self, query: str) -> List[Dict]:
-        """Search across all insights"""
+    def search_insights(self, query: str, use_semantic: bool = True) -> Dict:
+        """Search across all insights using RAG (semantic search + LLM answer generation) or keyword search"""
+        if not query.strip():
+            return {'answer': '', 'results': []}
+        
+        # Try semantic search first if enabled and embeddings exist
+        if use_semantic:
+            try:
+                # #region agent log
+                try:
+                    import json as json_module
+                    import time as time_module
+                    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"RAG6","location":"app.py:148","message":"DataLoader.search_insights() called with semantic search","data":{"query":query,"use_semantic":use_semantic},"timestamp":int(time_module.time()*1000)}) + '\n')
+                except:
+                    pass
+                # #endregion
+                
+                rag_result = semantic_search.search_with_context(query, top_k=10)
+                
+                # #region agent log
+                try:
+                    import json as json_module
+                    import time as time_module
+                    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"RAG7","location":"app.py:160","message":"RAG result received","data":{"query":query,"has_answer":bool(rag_result.get('answer')),"sources_count":len(rag_result.get('sources', []))},"timestamp":int(time_module.time()*1000)}) + '\n')
+                except:
+                    pass
+                # #endregion
+                
+                # Convert RAG result to format expected by template
+                results = []
+                for source in rag_result.get('sources', []):
+                    video_id = source['video_id']
+                    video_data = self.get_video_insights(video_id)
+                    if video_data:
+                        results.append({
+                            'video_id': video_id,
+                            'title': video_data['metadata'].get('title', 'Unknown Title'),
+                            'summary': source['text'][:200] + '...' if len(source['text']) > 200 else source['text'],
+                            'matched_text': source['text'],
+                            'similarity': source['similarity'],
+                            'search_type': 'semantic',
+                            'matches': []
+                        })
+                
+                return {
+                    'answer': rag_result.get('answer', ''),
+                    'results': results
+                }
+            except Exception as e:
+                print(f"⚠️  Semantic search error: {e}, falling back to keyword search")
+                # #region agent log
+                try:
+                    import json as json_module
+                    import time as time_module
+                    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"RAG8","location":"app.py:217","message":"Semantic search failed, falling back","data":{"query":query,"error":str(e)},"timestamp":int(time_module.time()*1000)}) + '\n')
+                except:
+                    pass
+                # #endregion
+        
+        # Fallback to keyword search
         query_lower = query.lower()
         results = []
         
@@ -169,24 +231,35 @@ class DataLoader:
             if query_lower in video_data['metadata'].get('title', '').lower():
                 matches.append('title')
             
+            # Also search in transcript if available
+            if video_data.get('transcript'):
+                transcript_lower = video_data['transcript'].lower()
+                if query_lower in transcript_lower:
+                    matches.append('transcript')
+            
             if matches:
                 results.append({
                     'video_id': video_id,
                     'title': video_data['metadata'].get('title', 'Unknown'),
                     'matches': matches,
                     'summary': insight_data.get('summary', '')[:200],
-                    'video_data': video_data
+                    'video_data': video_data,
+                    'search_type': 'keyword'
                 })
         
-        return results
+        return {
+            'answer': f'Found {len(results)} results using keyword search.',
+            'results': results
+        }
     
     def get_statistics(self) -> Dict:
         """Get overall statistics"""
         videos = self.get_all_videos()
         
-        total_insights = sum(v['insights_count'] for v in videos)
-        total_nuggets = sum(v['nuggets_count'] for v in videos)
-        total_transcript_length = sum(v['transcript_length'] for v in videos)
+        # Safely sum with default values
+        total_insights = sum(v.get('insights_count', 0) for v in videos)
+        total_nuggets = sum(v.get('nuggets_count', 0) for v in videos)
+        total_transcript_length = sum(v.get('transcript_length', 0) for v in videos)
         
         # Load cost data if available
         cost_file = config.paths.project_root / "data" / "costs.json"
@@ -198,19 +271,26 @@ class DataLoader:
             except:
                 pass
         
+        num_videos = len(videos)
         return {
-            'total_videos': len(videos),
+            'total_videos': num_videos,
             'total_insights': total_insights,
             'total_nuggets': total_nuggets,
-            'total_transcript_length': total_transcript_length,
-            'avg_insights_per_video': total_insights / len(videos) if videos else 0,
-            'avg_nuggets_per_video': total_nuggets / len(videos) if videos else 0,
+            'total_transcript_length': total_transcript_length or 0,
+            'avg_insights_per_video': total_insights / num_videos if num_videos > 0 else 0,
+            'avg_nuggets_per_video': total_nuggets / num_videos if num_videos > 0 else 0,
             'cost_data': cost_data.get('summary', {})
         }
 
 
 # Initialize data loader
 data_loader = DataLoader()
+
+# Initialize semantic search - use config paths for consistency
+semantic_search = SemanticSearch(
+    PROJECT_ROOT,
+    transcripts_dir=config.paths.raw_transcripts_dir
+)
 
 # Pipeline status tracking
 pipeline_status = {
@@ -221,6 +301,10 @@ pipeline_status = {
     'processed': 0,
     'errors': []
 }
+
+# Progress file path
+PROGRESS_FILE = PROJECT_ROOT / "data" / "pipeline_progress.json"
+PROGRESS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 @app.route('/')
@@ -263,25 +347,27 @@ def api_video(video_id: str):
 @app.route('/api/search')
 def api_search():
     """API endpoint for search"""
-    query = request.args.get('q', '')
+    query = request.args.get('q', '').strip()
+    use_semantic = request.args.get('semantic', 'true').lower() == 'true'
     
     if not query:
-        return jsonify([])
+        return jsonify({'answer': '', 'results': []})
     
-    results = data_loader.search_insights(query)
-    return jsonify(results)
+    search_result = data_loader.search_insights(query, use_semantic=use_semantic)
+    return jsonify(search_result)
 
 
 @app.route('/search')
 def search():
     """Search page"""
-    query = request.args.get('q', '')
-    results = []
+    query = request.args.get('q', '').strip()
+    use_semantic = request.args.get('semantic', 'true').lower() == 'true'
+    search_result = {'answer': '', 'results': []}
     
     if query:
-        results = data_loader.search_insights(query)
+        search_result = data_loader.search_insights(query, use_semantic=use_semantic)
     
-    return render_template('search.html', query=query, results=results)
+    return render_template('search.html', query=query, answer=search_result.get('answer', ''), results=search_result.get('results', []), use_semantic=use_semantic)
 
 
 @app.route('/stats')
@@ -370,6 +456,9 @@ def repository():
             has_audio = audio_file.exists()
             audio_size = audio_file.stat().st_size if has_audio else 0
             
+            # Check if embeddings exist for this video
+            has_embeddings = video_id in semantic_search.embeddings_cache
+            
             # Load insight data for preview
             insights_count = 0
             nuggets_count = 0
@@ -398,7 +487,8 @@ def repository():
                 'has_chunks': has_chunks,
                 'chunk_count': chunk_count,
                 'has_audio': has_audio,
-                'audio_size': audio_size
+                'audio_size': audio_size,
+                'has_embeddings': has_embeddings
             })
         except Exception as e:
             # Log error but continue processing other files
@@ -666,6 +756,25 @@ def run_pipeline_for_new_videos():
         pipeline_status['progress'] = "No new videos to process"
         return
     
+    # Initialize progress tracker
+    # #region agent log
+    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+        import json as json_module
+        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"app.py:676","message":"Initializing progress tracker","data":{"progress_file":str(PROGRESS_FILE),"file_exists":PROGRESS_FILE.exists(),"new_videos_count":len(new_videos)},"timestamp":int(time.time()*1000)}) + '\n')
+    # #endregion
+    progress_tracker = ProgressTracker(PROGRESS_FILE)
+    # #region agent log
+    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+        import json as json_module
+        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"app.py:679","message":"Progress tracker created, calling start_processing","data":{"progress_file":str(PROGRESS_FILE)},"timestamp":int(time.time()*1000)}) + '\n')
+    # #endregion
+    progress_tracker.start_processing(new_videos)
+    # #region agent log
+    with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+        import json as json_module
+        f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"app.py:682","message":"start_processing completed, checking file","data":{"progress_file":str(PROGRESS_FILE),"file_exists":PROGRESS_FILE.exists(),"file_size":PROGRESS_FILE.stat().st_size if PROGRESS_FILE.exists() else 0},"timestamp":int(time.time()*1000)}) + '\n')
+    # #endregion
+    
     pipeline_status['total_videos'] = len(new_videos)
     pipeline_status['current_video'] = None
     pipeline_status['progress'] = f"Found {len(new_videos)} new videos to process"
@@ -673,14 +782,27 @@ def run_pipeline_for_new_videos():
     # Run pipeline in subprocess (better for isolation and error handling)
     def run_pipeline():
         try:
-            # Build command
+            # Build command with progress file path
             cmd = [
                 sys.executable,
                 str(PROJECT_ROOT / "src" / "transcript" / "pipeline.py"),
                 "--video-ids"
-            ] + new_videos
+            ] + new_videos + [
+                "--progress-file",
+                str(PROGRESS_FILE)
+            ]
+            # #region agent log
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                import json as json_module
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"app.py:694","message":"Building subprocess command","data":{"cmd":cmd,"progress_file_arg":str(PROGRESS_FILE),"progress_file_exists":PROGRESS_FILE.exists()},"timestamp":int(time.time()*1000)}) + '\n')
+            # #endregion
             
             # Run pipeline
+            # #region agent log
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                import json as json_module
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"app.py:697","message":"About to start subprocess","data":{"cmd":cmd,"cwd":str(PROJECT_ROOT)},"timestamp":int(time.time()*1000)}) + '\n')
+            # #endregion
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -689,20 +811,105 @@ def run_pipeline_for_new_videos():
                 cwd=str(PROJECT_ROOT),
                 bufsize=1  # Line buffered
             )
+            # #region agent log
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                import json as json_module
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"app.py:705","message":"Subprocess started","data":{"pid":process.pid,"returncode":process.returncode},"timestamp":int(time.time()*1000)}) + '\n')
+            # #endregion
             
-            # Monitor progress by checking output
-            pipeline_status['progress'] = "Starting pipeline..."
+            # Monitor progress by checking progress file and process output
+            pipeline_status['progress'] = f"Starting pipeline... Processing {len(new_videos)} videos sequentially"
             
-            # Wait for completion
+            # Monitor progress in real-time
+            import time as time_module
+            monitor_iteration = 0
+            while process.poll() is None:
+                monitor_iteration += 1
+                # #region agent log
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                    import json as json_module
+                    f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"app.py:713","message":"Monitoring loop iteration","data":{"iteration":monitor_iteration,"progress_file_exists":PROGRESS_FILE.exists(),"process_alive":process.poll() is None},"timestamp":int(time.time()*1000)}) + '\n')
+                # #endregion
+                # Check progress file for updates
+                if PROGRESS_FILE.exists():
+                    try:
+                        # #region agent log
+                        with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                            import json as json_module
+                            file_stat = PROGRESS_FILE.stat()
+                            f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"app.py:717","message":"Reading progress file","data":{"progress_file":str(PROGRESS_FILE),"file_size":file_stat.st_size,"file_mtime":file_stat.st_mtime},"timestamp":int(time.time()*1000)}) + '\n')
+                        # #endregion
+                        progress_tracker = ProgressTracker(PROGRESS_FILE)
+                        progress_data = progress_tracker.get_progress()
+                        # #region agent log
+                        with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                            import json as json_module
+                            f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"app.py:720","message":"Progress data retrieved","data":{"has_videos":'videos' in progress_data if progress_data else False,"video_count":len(progress_data.get('videos',{})) if progress_data else 0,"last_updated":progress_data.get('last_updated') if progress_data else None},"timestamp":int(time.time()*1000)}) + '\n')
+                        # #endregion
+                        
+                        if progress_data and 'videos' in progress_data:
+                            completed = sum(1 for v in progress_data['videos'].values() 
+                                          if v.get('stage') == 'completed')
+                            failed = sum(1 for v in progress_data['videos'].values() 
+                                        if v.get('stage') == 'failed')
+                            in_progress = [vid for vid, data in progress_data['videos'].items() 
+                                         if data.get('stage') not in ['completed', 'failed', 'queued']]
+                            
+                            if in_progress:
+                                current_vid = in_progress[0]
+                                current_stage = progress_data['videos'][current_vid].get('stage_name', 'Processing')
+                                pipeline_status['current_video'] = current_vid
+                                pipeline_status['progress'] = f"Processing video {completed + failed + 1}/{len(new_videos)}: {current_stage}"
+                            else:
+                                pipeline_status['progress'] = f"Queued: {len(new_videos) - completed - failed} videos waiting"
+                            
+                            pipeline_status['processed'] = completed
+                    except Exception as e:
+                        # If progress file read fails, continue monitoring
+                        # #region agent log
+                        with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                            import json as json_module
+                            import traceback
+                            f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"F","location":"app.py:737","message":"Exception reading progress file","data":{"error":str(e),"error_type":type(e).__name__,"traceback":traceback.format_exc()},"timestamp":int(time.time()*1000)}) + '\n')
+                        # #endregion
+                        pass
+                
+                # Sleep briefly before checking again
+                time_module.sleep(1)
+            
+            # Wait for final output
+            # #region agent log
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                import json as json_module
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"app.py:743","message":"Waiting for subprocess to complete","data":{"process_alive":process.poll() is None},"timestamp":int(time.time()*1000)}) + '\n')
+            # #endregion
             stdout, stderr = process.communicate()
+            # #region agent log
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                import json as json_module
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"B","location":"app.py:746","message":"Subprocess completed","data":{"returncode":process.returncode,"stdout_length":len(stdout) if stdout else 0,"stderr_length":len(stderr) if stderr else 0,"stderr_preview":stderr[:200] if stderr else None},"timestamp":int(time.time()*1000)}) + '\n')
+            # #endregion
+            
+            # Final status update
+            if PROGRESS_FILE.exists():
+                try:
+                    progress_tracker = ProgressTracker(PROGRESS_FILE)
+                    progress_data = progress_tracker.get_progress()
+                    if progress_data and 'videos' in progress_data:
+                        completed = sum(1 for v in progress_data['videos'].values() 
+                                      if v.get('stage') == 'completed')
+                        failed = sum(1 for v in progress_data['videos'].values() 
+                                    if v.get('stage') == 'failed')
+                        pipeline_status['processed'] = completed
+                except:
+                    pass
             
             # Update status based on completion
             if process.returncode == 0:
-                pipeline_status['progress'] = f"✅ Successfully processed {len(new_videos)} videos"
-                pipeline_status['processed'] = len(new_videos)
+                pipeline_status['progress'] = f"✅ Successfully processed {pipeline_status.get('processed', len(new_videos))} videos"
             else:
-                error_msg = stderr if stderr else "Unknown error"
-                pipeline_status['errors'].append(f"Pipeline failed: {error_msg}")
+                error_msg = stderr if stderr else stdout if stdout else "Unknown error"
+                pipeline_status['errors'].append(f"Pipeline failed: {error_msg[:500]}")
                 pipeline_status['progress'] = f"❌ Pipeline completed with errors"
             
             pipeline_status['current_video'] = None
@@ -710,6 +917,8 @@ def run_pipeline_for_new_videos():
         except Exception as e:
             pipeline_status['errors'].append(str(e))
             pipeline_status['progress'] = f"❌ Error: {str(e)}"
+            import traceback
+            traceback.print_exc()
         finally:
             pipeline_status['running'] = False
     
@@ -735,7 +944,37 @@ def pipeline_page():
 @app.route('/api/pipeline/status')
 def pipeline_status_api():
     """Get current pipeline status"""
-    return jsonify(pipeline_status)
+    # Also include detailed progress if available
+    detailed_progress = {}
+    if PROGRESS_FILE.exists():
+        try:
+            progress_tracker = ProgressTracker(PROGRESS_FILE)
+            detailed_progress = progress_tracker.get_progress()
+        except:
+            pass
+    
+    return jsonify({
+        **pipeline_status,
+        'detailed_progress': detailed_progress
+    })
+
+
+@app.route('/api/pipeline/progress/<video_id>')
+def get_video_progress(video_id: str):
+    """Get detailed progress for a specific video"""
+    if not PROGRESS_FILE.exists():
+        return jsonify({'error': 'No progress data available'}), 404
+    
+    try:
+        progress_tracker = ProgressTracker(PROGRESS_FILE)
+        video_progress = progress_tracker.get_progress(video_id)
+        
+        if not video_progress:
+            return jsonify({'error': 'Video not found in progress'}), 404
+        
+        return jsonify(video_progress)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/pipeline/start', methods=['POST'])
@@ -944,6 +1183,225 @@ def partial_video_card(video_id: str):
         return "<div>Video not found</div>", 404
     
     return render_template('partials/video_card.html', video_data=video_data)
+
+
+@app.route('/api/embeddings/generate', methods=['POST'])
+def generate_embeddings():
+    """Generate embeddings for all transcripts or a specific video"""
+    # #region agent log
+    try:
+        import json as json_module
+        import time as time_module
+        with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+            f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E10","location":"app.py:1188","message":"generate_embeddings() API endpoint called","data":{"method":request.method,"content_type":request.content_type,"has_json":request.is_json,"has_form":bool(request.form),"form_keys":list(request.form.keys()) if request.form else []},"timestamp":int(time_module.time()*1000)}) + '\n')
+    except:
+        pass
+    # #endregion
+    try:
+        # HTMX sends form-encoded data, but also support JSON
+        # HTMX hx-vals='{"video_id": "xxx"}' becomes form field: video_id=xxx
+        if request.is_json:
+            data = request.get_json() or {}
+        else:
+            # Parse form data (HTMX sends hx-vals as form-encoded)
+            data = request.form.to_dict()
+            # HTMX automatically parses JSON in hx-vals and sends as form fields
+            # So if we have video_id in form, use it directly
+        
+        video_id = data.get('video_id')  # Optional: generate for specific video
+        force = data.get('force', False)
+        
+        # #region agent log
+        try:
+            import json as json_module
+            import time as time_module
+            with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E10","location":"app.py:1215","message":"generate_embeddings() parsed request data","data":{"video_id":video_id,"force":force,"data_keys":list(data.keys()),"transcripts_dir":str(semantic_search.transcripts_dir),"transcripts_dir_exists":semantic_search.transcripts_dir.exists()},"timestamp":int(time_module.time()*1000)}) + '\n')
+        except:
+            pass
+        # #endregion
+        
+        if video_id:
+            # Check if embeddings already exist (unless force is True)
+            if not force and video_id in semantic_search.embeddings_cache:
+                if request.headers.get('HX-Request'):  # HTMX request - reload repository row
+                    # Reload embeddings cache to ensure it's up to date
+                    semantic_search._load_embeddings()
+                    return _get_repository_row_html(video_id)
+                return jsonify({
+                    'status': 'success',
+                    'message': f'Embeddings already exist for {video_id}',
+                    'video_id': video_id
+                })
+            
+            success = semantic_search.generate_embeddings_for_video(video_id, force_regenerate=force)
+            
+            # #region agent log
+            try:
+                import json as json_module
+                import time as time_module
+                with open('/Users/garcia/Documents/Coding/code4AI-governance/Projects/yc-insight-extractor/.cursor/debug.log', 'a') as f:
+                    f.write(json_module.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E11","location":"app.py:1181","message":"generate_embeddings_for_video() completed","data":{"video_id":video_id,"success":success,"embeddings_file":str(semantic_search.embeddings_file),"cache_has_video":video_id in semantic_search.embeddings_cache},"timestamp":int(time_module.time()*1000)}) + '\n')
+            except:
+                pass
+            # #endregion
+            
+            if request.headers.get('HX-Request'):  # HTMX request - reload repository row
+                if success:
+                    # Reload embeddings cache to ensure it's up to date
+                    semantic_search._load_embeddings()
+                    return _get_repository_row_html(video_id)
+                else:
+                    return f'<tr><td colspan="6" class="px-6 py-4 text-red-600">Failed to generate embeddings for {video_id}</td></tr>'
+            
+            return jsonify({
+                'status': 'success' if success else 'error',
+                'message': f'Embeddings generated for {video_id}' if success else f'Failed to generate embeddings for {video_id}',
+                'video_id': video_id
+            })
+        else:
+            results = semantic_search.generate_embeddings_for_all(force_regenerate=force)
+            success_count = sum(1 for v in results.values() if v)
+            total_count = len(results)
+            
+            if request.headers.get('HX-Request'):  # HTMX request
+                status_html = f'<span class="text-green-600">✓ Generated embeddings for {success_count}/{total_count} videos</span>'
+                return status_html
+            
+            return jsonify({
+                'status': 'success',
+                'message': f'Generated embeddings for {success_count}/{total_count} videos',
+                'results': results
+            })
+    except Exception as e:
+        if request.headers.get('HX-Request'):  # HTMX request
+            return f'<tr><td colspan="6" class="px-6 py-4 text-red-600">Error: {str(e)}</td></tr>', 500
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+def _get_repository_row_html(video_id: str) -> str:
+    """Helper function to generate repository row HTML for HTMX updates"""
+    # Reuse the same logic as the repository route
+    insights_dir = config.paths.insights_dir
+    transcripts_dir = config.paths.raw_transcripts_dir
+    chunks_dir = config.paths.chunks_dir
+    audio_dir = config.paths.audio_dir
+    
+    insight_file = insights_dir / f"{video_id}_insights.json"
+    if not insight_file.exists():
+        return f'<tr><td colspan="6" class="px-6 py-4 text-gray-500">File not found</td></tr>'
+    
+    try:
+        # Load insight data
+        with open(insight_file, 'r', encoding='utf-8') as f:
+            insight_data = json.load(f)
+        
+        file_stat = insight_file.stat()
+        insights_count = len(insight_data.get('insights', []))
+        nuggets_count = len(insight_data.get('golden_nuggets', []))
+        
+        # Check for related files
+        transcript_file = transcripts_dir / f"{video_id}.txt"
+        audio_file = audio_dir / f"{video_id}.mp3"
+        chunks_dir_video = chunks_dir / video_id
+        
+        has_transcript = transcript_file.exists()
+        has_audio = audio_file.exists()
+        has_chunks = chunks_dir_video.exists() and any(chunks_dir_video.glob("*.mp3"))
+        has_embeddings = video_id in semantic_search.embeddings_cache
+        
+        transcript_size = transcript_file.stat().st_size if has_transcript else 0
+        audio_size = audio_file.stat().st_size if has_audio else 0
+        chunk_count = len(list(chunks_dir_video.glob("*.mp3"))) if has_chunks else 0
+        
+        from datetime import datetime
+        modified = datetime.fromtimestamp(file_stat.st_mtime).strftime('%Y-%m-%d %H:%M')
+        
+        # Generate HTML directly (matching repository.html structure)
+        embeddings_badge = ''
+        if has_embeddings:
+            embeddings_badge = '<span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">🧠 Embeddings Available</span>'
+        elif has_transcript:
+            embeddings_badge = '<span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">🧠 Embeddings Not Generated</span>'
+        else:
+            embeddings_badge = '<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">🧠 No transcript</span>'
+        
+        generate_button = ''
+        if has_transcript and not has_embeddings:
+            generate_button = f'''
+                <button 
+                    class="text-yellow-600 hover:text-yellow-900 text-xs text-left"
+                    hx-post="/api/embeddings/generate"
+                    hx-vals='{{"video_id": "{video_id}"}}'
+                    hx-target="closest tr"
+                    hx-swap="outerHTML"
+                    hx-indicator="#loading-{video_id}"
+                    id="generate-embeddings-{video_id}"
+                >
+                    🧠 Generate Embeddings
+                </button>
+                <div id="loading-{video_id}" class="htmx-indicator text-xs text-gray-500">Generating...</div>
+            '''
+        
+        transcript_badge = f'<span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">📝 Transcript ({transcript_size / 1024:.1f} KB)</span>' if has_transcript else '<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">📝 No transcript</span>'
+        audio_badge = f'<span class="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-medium">🔊 Audio ({audio_size / 1024 / 1024:.1f} MB)</span>' if has_audio else '<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">🔊 No audio</span>'
+        chunks_badge = f'<span class="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 text-indigo-800 text-xs font-medium">✂️ {chunk_count} chunks</span>' if has_chunks else '<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">✂️ No chunks</span>'
+        
+        return f'''
+    <tr class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+                <span class="text-lg mr-2">📄</span>
+                <div>
+                    <div class="text-sm font-medium text-gray-900">
+                        <a href="/video/{video_id}" class="text-blue-600 hover:text-blue-800" hx-get="/video/{video_id}" hx-target="body" hx-push-url="true">{video_id}</a>
+                    </div>
+                    <div class="text-xs text-gray-500 font-mono">{video_id}_insights.json</div>
+                </div>
+            </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">
+                <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium mr-1">💡 {insights_count}</span>
+                <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">⭐ {nuggets_count}</span>
+            </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex flex-col gap-1">
+                {transcript_badge}
+                {audio_badge}
+                {chunks_badge}
+                {embeddings_badge}
+            </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{file_stat.st_size / 1024:.1f} KB</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{modified}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex flex-col gap-2">
+                <a href="/video/{video_id}" class="text-blue-600 hover:text-blue-900" hx-get="/video/{video_id}" hx-target="body" hx-push-url="true">View Video →</a>
+                <a href="/insight-file/{video_id}" class="text-green-600 hover:text-green-900 text-xs" target="_blank">📄 View JSON</a>
+                <a href="/api/insight-file/{video_id}" class="text-purple-600 hover:text-purple-900 text-xs" download="{video_id}_insights.json">⬇️ Download</a>
+                {generate_button}
+            </div>
+        </td>
+    </tr>
+    '''
+    except Exception as e:
+        return f'<tr><td colspan="6" class="px-6 py-4 text-red-600">Error: {str(e)}</td></tr>'
+
+
+@app.route('/api/embeddings/status')
+def embeddings_status():
+    """Get status of embeddings"""
+    try:
+        video_ids = list(semantic_search.embeddings_cache.keys())
+        return jsonify({
+            'status': 'success',
+            'total_embeddings': len(video_ids),
+            'video_ids': video_ids
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 if __name__ == '__main__':

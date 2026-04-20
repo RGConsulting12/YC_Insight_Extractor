@@ -1,0 +1,129 @@
+<tr class="hover:bg-gray-50">
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex items-center">
+            <span class="text-lg mr-2">📄</span>
+            <div>
+                <div class="text-sm font-medium text-gray-900">
+                    <a 
+                        href="/video/{{ video_id }}"
+                        class="text-blue-600 hover:text-blue-800"
+                        hx-get="/video/{{ video_id }}"
+                        hx-target="body"
+                        hx-push-url="true"
+                    >
+                        {{ video_id }}
+                    </a>
+                </div>
+                <div class="text-xs text-gray-500 font-mono">
+                    {{ filename }}
+                </div>
+            </div>
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900">
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-xs font-medium mr-1">
+                💡 {{ insights_count }}
+            </span>
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">
+                ⭐ {{ nuggets_count }}
+            </span>
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex flex-col gap-1">
+            {% if has_transcript %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+                📝 Transcript ({{ "%.1f"|format(transcript_size / 1024) }} KB)
+            </span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                📝 No transcript
+            </span>
+            {% endif %}
+            
+            {% if has_audio %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-purple-100 text-purple-800 text-xs font-medium">
+                🔊 Audio ({{ "%.1f"|format(audio_size / 1024 / 1024) }} MB)
+            </span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                🔊 No audio
+            </span>
+            {% endif %}
+            
+            {% if has_chunks %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 text-indigo-800 text-xs font-medium">
+                ✂️ {{ chunk_count }} chunks
+            </span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                ✂️ No chunks
+            </span>
+            {% endif %}
+            
+            {% if has_embeddings %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+                🧠 Embeddings Available
+            </span>
+            {% elif has_transcript %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">
+                🧠 Embeddings Not Generated
+            </span>
+            {% else %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                🧠 No transcript
+            </span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {{ "%.1f"|format(size / 1024) }} KB
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {{ modified }}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div class="flex flex-col gap-2">
+            <a 
+                href="/video/{{ video_id }}"
+                class="text-blue-600 hover:text-blue-900"
+                hx-get="/video/{{ video_id }}"
+                hx-target="body"
+                hx-push-url="true"
+            >
+                View Video →
+            </a>
+            <a 
+                href="/insight-file/{{ video_id }}"
+                class="text-green-600 hover:text-green-900 text-xs"
+                target="_blank"
+            >
+                📄 View JSON
+            </a>
+            <a 
+                href="/api/insight-file/{{ video_id }}"
+                class="text-purple-600 hover:text-purple-900 text-xs"
+                download="{{ filename }}"
+            >
+                ⬇️ Download
+            </a>
+            {% if has_transcript and not has_embeddings %}
+            <button 
+                class="text-yellow-600 hover:text-yellow-900 text-xs text-left"
+                hx-post="/api/embeddings/generate"
+                hx-vals='{"video_id": "{{ video_id }}"}'
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+                hx-indicator="#loading-{{ video_id }}"
+                id="generate-embeddings-{{ video_id }}"
+            >
+                🧠 Generate Embeddings
+            </button>
+            <div id="loading-{{ video_id }}" class="htmx-indicator text-xs text-gray-500">
+                Generating...
+            </div>
+            {% endif %}
+        </div>
+    </td>
+</tr>

@@ -133,6 +133,20 @@
                                     ✂️ No chunks
                                 </span>
                                 {% endif %}
+                                
+                                {% if file.has_embeddings %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+                                    🧠 Embeddings Available
+                                </span>
+                                {% elif file.has_transcript %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                    🧠 Embeddings Not Generated
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-500 text-xs font-medium">
+                                    🧠 No transcript
+                                </span>
+                                {% endif %}
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -166,6 +180,22 @@
                                 >
                                     ⬇️ Download
                                 </a>
+                                {% if file.has_transcript and not file.has_embeddings %}
+                                <button 
+                                    class="text-yellow-600 hover:text-yellow-900 text-xs text-left"
+                                    hx-post="/api/embeddings/generate"
+                                    hx-vals='{"video_id": "{{ file.video_id }}"}'
+                                    hx-target="closest tr"
+                                    hx-swap="outerHTML"
+                                    hx-indicator="#loading-{{ file.video_id }}"
+                                    id="generate-embeddings-{{ file.video_id }}"
+                                >
+                                    🧠 Generate Embeddings
+                                </button>
+                                <div id="loading-{{ file.video_id }}" class="htmx-indicator text-xs text-gray-500">
+                                    Generating...
+                                </div>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
