@@ -22,6 +22,7 @@ wheels/
 MANIFEST
 
 # Virtual environments
+.venv/
 venv/
 env/
 ENV/
@@ -65,12 +66,14 @@ Thumbs.db
 *.wmv
 
 # Data files (transcripts, insights, etc.)
+/data/*.json
 data/audio/
 data/audio_chunks/
 data/raw_transcripts/
 data/insights/
 src/transcript/data/audio/
 src/transcript/data/audio_chunks/
+src/transcript/data/chunk_transcripts/
 src/transcript/data/raw_transcripts/
 src/transcript/data/insights/
 
@@ -117,3 +120,5 @@ celerybeat.pid
 .mypy_cache/
 .dmypy.json
 dmypy.json
+.DS_Store
+**/.DS_Store
